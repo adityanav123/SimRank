@@ -28,17 +28,29 @@ ROW_INT findInNeighbors (int node, matrix_INT Graph) {
     return answer;
 }
 
-double simrank(matrix_DOUBLE current, int from, int to, int k, vector<matrix_DOUBLE> &SimRank, double CONDIFENCE_VALUE, matrix_INT Graph) {
-    if (k == 0) {
+void show_ROW(ROW_INT row) {
+    for(auto x : row) {
+        cout << x << " ";
+    }cout << "\n";
+}
+
+double simrank(matrix_DOUBLE &current, int from, int to, int k, vector<matrix_DOUBLE> &SimRank, double CONDIFENCE_VALUE, matrix_INT Graph) {
+    if (k == 0) { // 0th iteration - is a Identity matrix.
         return SimRank[k][from][to];
     }
 
-    if(from == to) return 1.0;
+    if(from == to) return 1.0; // node to itself is always 1.0 on simrank value.
 
-
-    ROW_INT inNeigbours_from = findInNeighbors(from, Graph);
+    
+    ROW_INT inNeigbours_from = findInNeighbors(from, Graph); // returns all the in-neighbours of 'from'
     ROW_INT inNeigbours_to = findInNeighbors(to, Graph);
+    
+    if(inNeigbours_to.size() == 0 || inNeigbours_from.size() == 0) return 0.0;
 
+    /*cout << "in-neighbors : \n";
+    cout << "of : " << from << " --> "; show_ROW(inNeigbours_from);
+    cout << "of : " << to << " --> "; show_ROW(inNeigbours_to);
+I   */
     double summation = 0.0;
     for(auto x : inNeigbours_from) {
         for(auto y : inNeigbours_to) {
@@ -46,46 +58,87 @@ double simrank(matrix_DOUBLE current, int from, int to, int k, vector<matrix_DOU
         }
     }
     int size1 = inNeigbours_from.size(), size2 = inNeigbours_to.size();
+
+    //if(size1 == 0 || size2 == 0) return 0.0; // i.e. no in-neighbors.
+    
     double NORMALISATION_FACTOR = (double)(CONDIFENCE_VALUE / (double)(size1 * size2));
 
     return summation * NORMALISATION_FACTOR;
 
 }
 
-void SimrankForAllNodes(vector<matrix_DOUBLE> &SimRank, int k, double C, int V, matrix_INT Graph) {
-    matrix_DOUBLE tempSimrank;
-    resizeSimrankMatrix(tempSimrank, V, -1.0);
-
-    for(int i = 0; i < V; i++) {
-        for(int j = 0; j < V; j++) {
-            tempSimrank[i][j] = simrank(tempSimrank, i, j, k-1, SimRank, C, Graph);
+void showSimrankMatrix(vector<matrix_DOUBLE> simrank) {
+    for(int i = 0; i < simrank.size(); i++) {
+        cout << "#" << i << " : \n";
+        matrix_DOUBLE tmp = simrank[i];
+        for(auto x : tmp) {
+            for(auto y : x) {
+                cout << y << " ";
+            }
+            cout << "\n";
         }
-    }
-    
-    //SimRank.push_back(tempSimrank);
-    SimRank[k] = tempSimrank;
-    cout << "temporary simrank matrix : \n";
-    for(auto x : SimRank[k]) {
-        for(auto y : x) {
-            cout << y << " ";
-        }cout << "\n";
+        cout << "======\n";
     }
 }
 
+void SimrankForAllNodes(vector<matrix_DOUBLE> &SimRank, int k, double C, int V, matrix_INT Graph) {
+    //cout << "value of k : " << k << "\n";
+    
+    matrix_DOUBLE tempSimrank;
+    resizeSimrankMatrix(tempSimrank, V, -1.0);
+    
+    //showSimrankMatrix(SimRank); 
+    
+    for(int i = 0; i < V; i++) {
+        for(int j = 0; j < V; j++) {
+            tempSimrank[i][j] = simrank(tempSimrank, i, j, k-1, SimRank, C, Graph);
+            //cout << "temp_answer = " << tempSimrank[i][j] << "\n";
+        }
+    }
+    
+    SimRank.push_back(tempSimrank);
+    //SimRank[k] = tempSimrank;
+    
+   // cout << "temporary simrank matrix : \n";
+    /*for(auto x : SimRank[k]) {
+        for(auto y : x) {
+            cout << y << " ";
+        }cout << "\n";
+    }*/
+}
+
 void ComputeSimrankMatrix(matrix_INT Graph,int noOfVertices, int noOfEdges, int max_iterations, double confidence_value) {
-    vector<matrix_DOUBLE> SimRank(max_iterations); 
+    vector<matrix_DOUBLE> SimRank; 
 
     matrix_DOUBLE initMatrix(noOfVertices, ROW_DOUBLE(noOfVertices, 0.0));
+    
     for(int i = 0; i < noOfVertices; i++) {
         initMatrix[i][i] = 1.0;
     }
+    
+    /*
+    for(auto x : initMatrix) {
+        for(auto y : x) {
+            printf("%lf ", y);
+        } printf("\n");
+    }
+    printf("\n\n");
+    */
+
     SimRank.push_back(initMatrix);
     
     for(int k = 1; k < max_iterations; k++) {
-        cout << "iteration : " << k << "\n";
+        //cout << "iteration : #" << k << "\n";
         SimrankForAllNodes(SimRank, k, confidence_value, noOfVertices, Graph);
     }
-    cout << "iterations completed!\n";
+    cout << "iterations completed!\n\n\n";
+
+    for(auto x : SimRank[max_iterations-1]) {
+        for(auto y : x) {
+            printf("%lf ", y);
+        }printf("\n");
+    }
+    printf("\n");
 }   
 
 
@@ -109,13 +162,14 @@ int main() {
         Graph[from][to] = 1;
     }
     /*SHOW GRAPH*/
+    cout << "Graph Entered ! : \n";
     for(int i = 0; i < noOfVertices; i++) {
-        cout << i << " --> ";
+        cout << i << " : ";
         for(int j = 0; j < Graph[i].size(); j++) {
             cout << Graph[i][j] << " ";
         }
         cout << "\n";
-    }
+    }cout << "\n\n";
 
     ComputeSimrankMatrix(Graph, noOfVertices, noOfEdges, 1000, 0.9);
     return 0;
