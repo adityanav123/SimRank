@@ -1,1 +1,2 @@
 - Naive SimRank Implementation in C++
+- networkx_simrank.py is the python's inbuilt implementation of SimRank, created for validating the answer.
