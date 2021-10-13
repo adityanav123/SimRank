@@ -1,7 +1,9 @@
 #include <iostream>
 #include <vector>
 #include <unordered_map>
+#include "converge.h"
 using namespace std;
+
 #define matrix_INT vector<vector<int>>
 #define matrix_DOUBLE vector<vector<double>>
 #define ROW_INT vector<int>
@@ -54,7 +56,8 @@ I   */
     double summation = 0.0;
     for(auto x : inNeigbours_from) {
         for(auto y : inNeigbours_to) {
-            summation += simrank(current, x, y, k-1, SimRank, CONDIFENCE_VALUE, Graph);
+            //summation += simrank(current, x, y, k-1, SimRank, CONDIFENCE_VALUE, Graph);
+            summation += SimRank[k-1][x][y];
         }
     }
     int size1 = inNeigbours_from.size(), size2 = inNeigbours_to.size();
@@ -82,8 +85,6 @@ void showSimrankMatrix(vector<matrix_DOUBLE> simrank) {
 }
 
 void SimrankForAllNodes(vector<matrix_DOUBLE> &SimRank, int k, double C, int V, matrix_INT Graph) {
-    //cout << "value of k : " << k << "\n";
-    
     matrix_DOUBLE tempSimrank;
     resizeSimrankMatrix(tempSimrank, V, -1.0);
     
@@ -96,15 +97,7 @@ void SimrankForAllNodes(vector<matrix_DOUBLE> &SimRank, int k, double C, int V, 
         }
     }
     
-    SimRank.push_back(tempSimrank);
-    //SimRank[k] = tempSimrank;
-    
-   // cout << "temporary simrank matrix : \n";
-    /*for(auto x : SimRank[k]) {
-        for(auto y : x) {
-            cout << y << " ";
-        }cout << "\n";
-    }*/
+    SimRank.push_back(tempSimrank); // adding similarity values for further iterations
 }
 
 void ComputeSimrankMatrix(matrix_INT Graph,int noOfVertices, int noOfEdges, int max_iterations, double confidence_value) {
@@ -115,27 +108,26 @@ void ComputeSimrankMatrix(matrix_INT Graph,int noOfVertices, int noOfEdges, int 
     for(int i = 0; i < noOfVertices; i++) {
         initMatrix[i][i] = 1.0;
     }
-    
-    /*
-    for(auto x : initMatrix) {
-        for(auto y : x) {
-            printf("%lf ", y);
-        } printf("\n");
-    }
-    printf("\n\n");
-    */
-
+    /* Iteration - 0 */
     SimRank.push_back(initMatrix);
     
-    for(int k = 1; k < max_iterations; k++) {
-        //cout << "iteration : #" << k << "\n";
+    int k = 1;
+    for(; k < max_iterations; k++) {
+        /*
+            For each iterations, we have to see whether it converges or not.
+            See : converge.h
+        */
+        if(checkConvergence(SimRank, confidence_value) == true) {
+            break;
+        }
         SimrankForAllNodes(SimRank, k, confidence_value, noOfVertices, Graph);
     }
-    cout << "iterations completed!\n\n\n";
-
+    cout << "SimRank Algorithm Converged!\n";
+    //cout << "iterations completed!\n\n";
+    cout << "Final Simrank Matrix : \n";
     for(auto x : SimRank[max_iterations-1]) {
         for(auto y : x) {
-            printf("%lf ", y);
+            printf("%.4f ", y);
         }printf("\n");
     }
     printf("\n");
@@ -144,12 +136,11 @@ void ComputeSimrankMatrix(matrix_INT Graph,int noOfVertices, int noOfEdges, int 
 
 int main() {
     Message();
-
-    /*#ifndef ONLINE_JUDGE
+    #ifndef ONLINE_JUDGE
         freopen("input.txt", "r", stdin);
-        freopen("output.txt", "w", stdout);
+        //freopen("output.txt", "w", stdout);
     #endif
-    */
+    
     int noOfVertices, noOfEdges;
     cin >> noOfVertices >> noOfEdges; 
 
@@ -161,6 +152,14 @@ int main() {
         cin >> from >> to;
         Graph[from][to] = 1;
     }
+    
+    int noOfIterations;
+    double confidence_value;
+    printf("Enter no. of iterations: ");
+    scanf("%d", &noOfIterations);
+    printf("Enter Confidence-Value (0 - 1) : ");
+    cin >> confidence_value;
+
     /*SHOW GRAPH*/
     cout << "Graph Entered ! : \n";
     for(int i = 0; i < noOfVertices; i++) {
@@ -171,6 +170,6 @@ int main() {
         cout << "\n";
     }cout << "\n\n";
 
-    ComputeSimrankMatrix(Graph, noOfVertices, noOfEdges, 1000, 0.9);
+    ComputeSimrankMatrix(Graph, noOfVertices, noOfEdges, noOfIterations, confidence_value);
     return 0;
 }
