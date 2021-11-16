@@ -3,7 +3,9 @@
 #include <unordered_map>
 #include "converge.h"
 #include <fstream>
+#include <stdio.h>
 using namespace std;
+
 
 #define matrix_INT vector<vector<int>>
 #define matrix_DOUBLE vector<vector<double>>
@@ -14,6 +16,8 @@ using namespace std;
 ofstream fout;
 fout.open("output_simrank.txt");
 ****************/
+
+
 
 void Message() {
     cout << "Default Configuration : \n\t1. [Directed-Graph]\n\t2. [Confidence Value] : 0.9\n\t3. [No. of Iterations] : 1000\n";
@@ -54,23 +58,29 @@ void show_ROW(ROW_INT row) {
     }cout << "\n";
 }
 
-double simrank(matrix_DOUBLE &current, int from, int to, int k, double CONDIFENCE_VALUE, matrix_INT Graph, matrix_DOUBLE &SimRankCurrent) {
-    if (k == 0) { // 0th iteration - is a Identity matrix.
-        return SimRankCurrent[from][to];
-    } 
 
+double simrank(int from, int to, int k, double CONDIFENCE_VALUE, matrix_INT Graph, ROW_DOUBLE &SimRank_) {
+    int vertices = Graph.size();
+    if (k == 0) { // 0th iteration - is a Identity matrix.
+        return SimRank_[from * vertices + to];
+    } 
+    /*GPU- 
+     * int id = blockIdx.x * blockDim.x + threadIdx.x;
+     *if(id == 0) SimRank_[..] = SimRank[from*SimRankCurrent.size()+to];
+     *
+     * */
     if(from == to) return 1.0; // node to itself is always 1.0 on simrank value.
 
-    
+    /* The main issue for GPU */ 
     ROW_INT inNeigbours_from = findInNeighbors(from, Graph); // returns all the in-neighbours of 'from'
     ROW_INT inNeigbours_to = findInNeighbors(to, Graph);
     
     if(inNeigbours_to.size() == 0 || inNeigbours_from.size() == 0) return 0.0;
-
+    //int vertices = SimRankCurrent.size();
     double summation = 0.0;
     for(auto x : inNeigbours_from) {
         for(auto y : inNeigbours_to) {
-            summation += SimRankCurrent[x][y];
+            summation += SimRank_[x*vertices+y];
         }
     }
     int size1 = inNeigbours_from.size(), size2 = inNeigbours_to.size();
@@ -94,35 +104,51 @@ void showSimrankMatrix(vector<matrix_DOUBLE> simrank) {
     }
 }
 
-void SimrankForAllNodes(matrix_DOUBLE &SimRank, int k, double C, int V, matrix_INT Graph) {
-    matrix_DOUBLE tempSimrank;
+void SimrankForAllNodes(int k, double C, int V, matrix_INT Graph, ROW_DOUBLE &SimRank_) {
+    /* 2D - CPU Config */
+    /*matrix_DOUBLE tempSimrank;
     resizeSimrankMatrix(tempSimrank, V, -1.0);
+    */
+
+    /* 1D - GPU */
+    ROW_DOUBLE tmpSimRank(V*V, -1.0);
     
     // To See SimRank output for every iteration, un-comment the below line.
     //showSimrankMatrix(SimRank); 
     
     for(int i = 0; i < V; i++) {
         for(int j = 0; j < V; j++) {
-            tempSimrank[i][j] = simrank(tempSimrank, i, j, k-1, C, Graph, SimRank);
+            tmpSimRank[i*V+j] = simrank(i, j, k-1, C, Graph, SimRank_);
         }
     }
     
     // adding similarity values for further iterations
-    SimRank = tempSimrank;
+    //SimRank = tempSimrank;
+    SimRank_ = tmpSimRank;
 }
 
 void ComputeSimrankMatrix(matrix_INT Graph,int noOfVertices, int noOfEdges, int max_iterations, double confidence_value) {
-    //vector<matrix_DOUBLE> SimRank; 
     // Optimising for space.
-    matrix_DOUBLE SimRankCurrent;
+    //matrix_DOUBLE SimRankCurrent;
 
-    matrix_DOUBLE initMatrix(noOfVertices, ROW_DOUBLE(noOfVertices, 0.0));
+    /* Optimising for GPU */
+    ROW_DOUBLE SimRank_(noOfVertices * noOfVertices, 0.0);
+
+    //matrix_DOUBLE initMatrix(noOfVertices, ROW_DOUBLE(noOfVertices, 0.0));
     
-    for(int i = 0; i < noOfVertices; i++) {
-        initMatrix[i][i] = 1.0;
+    for(int i = 0; i < noOfVertices ; i++) {
+        SimRank_[i * noOfVertices + i] = 1.0;
     }
-    
-    SimRankCurrent = initMatrix; /* 0th Iteration */
+   
+    /*
+    cout << "1D SimRank: \n";
+    for(int i = 0; i < noOfVertices ; i++) {
+        for(int j = 0; j < noOfVertices; j++) {
+            printf("%.4f ", SimRank_[i*noOfVertices+j]);
+        }
+        printf("\n");
+    }
+    */
     
     int k = 1;
     for(; k < max_iterations; k++) {
@@ -136,17 +162,20 @@ void ComputeSimrankMatrix(matrix_INT Graph,int noOfVertices, int noOfEdges, int 
         if(checkConvergence(SimRank, confidence_value) == true) {
             break;
         }*/
-        SimrankForAllNodes(SimRankCurrent, k, confidence_value, noOfVertices, Graph);
+        storeL2Norm(SimRank_, noOfVertices);
+        storel1Norm(SimRank_, noOfVertices);
+        SimrankForAllNodes(k, confidence_value, noOfVertices, Graph, SimRank_);
     }
-
     cout << "SimRank Algorithm Converged!\n";
     
     cout << "Final Simrank Matrix : \n";
-    for(auto x : SimRankCurrent) {
-        for(auto y : x) {
-            printf("%.4f ", y);
+    
+    for(int i = 0; i < noOfVertices; i++) {
+        for(int j = 0; j < noOfVertices; j++) {
+            printf("%.4f ", SimRank_[i*noOfVertices+j]);
         }printf("\n");
     }
+
     printf("\n");
 }   
 
@@ -173,21 +202,22 @@ void TakeSimRankConfigurationInput(int &iterations, double &confidence) {
     double confidence_value=0.9; 
 
     printf("Enter no. of iterations[for default, input -1]: ");
-    cin >> iterations;
+    scanf("%d", &iterations);
     printf("Enter Confidence-Value[0-1, for default, input -1]: ");
-    cin >> confidence;
+    scanf("%lf",&confidence);
 
     if(iterations == -1) iterations = 1000;
     if(confidence == -1) confidence = 0.9;
 
-    cout << "\n*SimRank Configuration Chosen: \n\tIterations: " << noOfIterations << "\n\tConfidence Value: " << confidence_value << "\n";
+    printf("\n*SimRank Configuration Chosen: \n\tIterations: %d\n\tConfidence Value: %lf\n",iterations, confidence);
 }
 
 
 
 int main() {
     Message();
-    
+    system("./delete_l1_l2.sh"); 
+    //system("echo $PWD");
     int noOfVertices, noOfEdges;
     matrix_INT Graph;
 
@@ -196,13 +226,19 @@ int main() {
 
     int noOfIterations;
     double confidence_value;
-    
+
+    /*Take SimRank Configuration Input*/
     TakeSimRankConfigurationInput(noOfIterations, confidence_value);
 
     /*SHOW GRAPH*/
     see_graph(Graph);
-    
+    clock_t startTime, endTime; 
     // SimRank Computation function
+    startTime = clock();
     ComputeSimrankMatrix(Graph, noOfVertices, noOfEdges, noOfIterations, confidence_value);
+    endTime = clock();
+    float time2 = (float)(endTime - startTime) / CLOCKS_PER_SEC;
+    printf("[CPU]Time Elapsed in seconds: %.4f\n", time2);
+    system("python numpy_test.py");
     return 0;
 }

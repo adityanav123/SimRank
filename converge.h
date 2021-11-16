@@ -5,17 +5,57 @@ using namespace std;
 #define ROW_INT vector<int>
 #define ROW_DOUBLE vector<double>
 
-double l2Norm(matrix_DOUBLE mtx) {
+double l2Norm(ROW_DOUBLE mtx, int V) {
    double sum = 0.0;
-   for(auto x : mtx) {
-        for(auto y : x) {
-            sum += pow(y, 2);
-        }
+   for(int i = 0; i < V; i++) {
+      for(int j = 0; j < V; j++) {
+          sum += pow(mtx[i*V+j],2);
+      } 
    }
-    
-   return sqrt(sum);
+    //return sqrt(sum);
+    return sqrt(sum);
 }
 
+double l1Norm(ROW_DOUBLE mtx, int V) {
+    double l1norm=0.00;
+    for(int i = 0; i < V; i++) {
+        for(int j = 0; j < V; j++) {
+            l1norm += mtx[i * V + j];
+        }
+    }
+    return l1norm; 
+    // compare these values ; for convergence , precision to 10e-5.
+}
+
+void storeL2Norm(ROW_DOUBLE mtx, int V) {
+    ofstream saveNorm;
+    saveNorm.open("l2_norms_values.txt", ios::app);
+    double normValue = l2Norm(mtx, V);
+    saveNorm << normValue << " ";
+    saveNorm.close();
+}
+
+void storel1Norm(ROW_DOUBLE mtx, int V) {
+    ofstream saveNorm;
+    saveNorm.open("l1_norms_values.txt", ios::app);
+    double normValue = l1Norm(mtx,V);
+    saveNorm << normValue << " ";
+    saveNorm.close();
+}
+
+inline bool checkConvergence(ROW_DOUBLE simrankMatrix, int noOfVertices, int iterationValue, double previousIterationL1Norm) {
+    // operations
+    // 10e-5 --> precision.
+    //
+    // k - 1 --> l1 norm for k-1 iterations.
+    // k --> calculate
+    // k and k-1 compare.
+    //
+    // if equal then return true.
+}
+
+
+/*
 inline bool checkConvergence(vector<matrix_DOUBLE> SimRank, double confidence_value, int iterations) {
     int N = SimRank.size();
     if(N <= 15) return false;
@@ -31,4 +71,4 @@ inline bool checkConvergence(vector<matrix_DOUBLE> SimRank, double confidence_va
        return true;
     }
     return false;
-}
+}*/
