@@ -43,7 +43,7 @@ void storel1Norm(ROW_DOUBLE mtx, int V) {
     saveNorm.close();
 }
 
-inline bool checkConvergence(ROW_DOUBLE simrankMatrix, int noOfVertices, int iterationValue, double previousIterationL1Norm) {
+/*inline bool checkConvergence(ROW_DOUBLE simrankMatrix, int noOfVertices, int iterationValue, double previousIterationL1Norm) {
     // operations
     // 10e-5 --> precision.
     //
@@ -52,7 +52,7 @@ inline bool checkConvergence(ROW_DOUBLE simrankMatrix, int noOfVertices, int ite
     // k and k-1 compare.
     //
     // if equal then return true.
-}
+}*/
 
 
 /*

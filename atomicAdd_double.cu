@@ -26,7 +26,7 @@ int main() {
     cudaMemcpy(sum, d_sum, sizeof(double), cudaMemcpyDeviceToHost);
     cudaMemcpy(arr, d_arr, sizeof(double) * N, cudaMemcpyDeviceToHost);
     
-    printf("arr : \n");
+    printf("arr[%d] : ", N);
     for(int i=0;i<N;i++) {
         printf("%lf ", arr[i]);
     }
