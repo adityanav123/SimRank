@@ -20,10 +20,8 @@ void Message() {
     printf("Default Configuration : \n\t1. [Directed-Graph]\n\t2. [Confidence Value] : 0.9\n\t3. [No. of Iterations] : 1000\n");
 }
 __global__ void calculateSimRankPair (int *A, int *B, double *simrank, double *summation, int* n_Vertices) {
-    int from = blockIdx.x;
-    int to = threadIdx.x;
-    
-    atomicAdd(&summation[0], simrank[A[from] * n_Vertices[0] + B[to]]);
+    int coordinate = A[blockIdx.x] * n_Vertices[0] + B[threadIdx.x]; 
+    atomicAdd(&summation[0], simrank[coordinate]);
 
 }
 void SimRankForAllNodes(int iteration, double* SimRank, int** Graph, int n_vertices, double confidence_value) {
@@ -35,6 +33,7 @@ void SimRankForAllNodes(int iteration, double* SimRank, int** Graph, int n_verti
            /* base conditions */
            if(i == j) { 
                tmpSimrank[i * n_vertices + j] = 1.0;
+               printf("base case - 1[same node]\n");
                continue;
            }
 
@@ -42,9 +41,11 @@ void SimRankForAllNodes(int iteration, double* SimRank, int** Graph, int n_verti
            int* I_B = findInNeighbors(j, Graph, n_vertices);
            int ia_size = sizeof(I_A) / sizeof(int);
            int ib_size = sizeof(I_B) / sizeof(int);
-
+            
+           double normalisation_factor = confidence_value / (ia_size * ib_size);
            if(ia_size == 0 || ib_size == 0) {
                tmpSimrank[i * n_vertices + j] = 0.0;
+               printf("base case - 2[no in-neighbors]\n");
                continue;
            }
 
@@ -84,8 +85,11 @@ void SimRankForAllNodes(int iteration, double* SimRank, int** Graph, int n_verti
 
            calculateSimRankPair<<<n_CUDA_threads, n_CUDA_blocks>>>(d_I_A, d_I_B, d_simrank, d_ans, device_n_vertices);
            
-           cudaMemcpy(tmp_ans, d_ans, sizeof(double), cudaMemcpyDeviceToHost);          
-           tmpSimrank[i * n_vertices + j] = tmp_ans[0];
+           cudaMemcpy(tmp_ans, d_ans, sizeof(double), cudaMemcpyDeviceToHost);  
+            
+
+           tmpSimrank[i * n_vertices + j] = tmp_ans[0] * normalisation_factor;
+           //printf("Simrank returned : %lf\n", tmp_ans[0]);
        }
    } 
    
