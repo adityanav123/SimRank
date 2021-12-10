@@ -48,7 +48,13 @@ using parallel programming abstractions to improve computation time of the progr
     
     - Speed Up : 51.03
 
+##4 : For a graph having 800 Vertices and 4800 Edges
 
+    - CPU Time : 164.4657
+
+    - GPU Time : 1.4588
+
+    - Speed Up : 112.74
 The above given results are the averaged time of the SimRank CPU and GPU bounded implementation 
 over a given graph. As we can see, using parallel computations in GPU, we can get a considerable
 Speed Up even in smaller graph, given that there are sufficient large number of parallel computations
