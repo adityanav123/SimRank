@@ -9,7 +9,6 @@ G.add_edge(2, 0);
 G.add_edge(3, 2);
 G.add_edge(1, 3);
 
-
 print(G)
 
 print('nodes - ', list(G));

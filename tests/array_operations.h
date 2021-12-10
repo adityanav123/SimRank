@@ -10,7 +10,7 @@ double* createArray_D(int size_m, double value=0.0) {
 }
 
 /* SimRank Computations */
-int* findInNeighbors(int node, int** arr, int n_vertices, int* endVertices) {
+int* findInNeighbors(int node, int** arr, int n_vertices, int *endSize) {
     std::vector<int> tmp;
     for(int i = 0; i < n_vertices; i++) {
         if(arr[i][node] == 1) {
@@ -18,7 +18,7 @@ int* findInNeighbors(int node, int** arr, int n_vertices, int* endVertices) {
         }
     }
     int s = tmp.size();
-    *endVertices = s;
+    *endSize = s;
     //printf("In-Neighbor size: %d\n", s);
     int *ans = (int*) malloc(sizeof(int) * s);
     int i=0;
@@ -27,6 +27,8 @@ int* findInNeighbors(int node, int** arr, int n_vertices, int* endVertices) {
     }
     return ans;
 }
+
+
 
 void seeGraph(int** graph, int size) {
     for(int i = 0; i < size; i++) {

@@ -26,11 +26,10 @@ int main() {
     cudaMemcpy(sum, d_sum, sizeof(double), cudaMemcpyDeviceToHost);
     cudaMemcpy(arr, d_arr, sizeof(double) * N, cudaMemcpyDeviceToHost);
     
-    printf("arr[%d] : ", N);
+    printf("arr : \n");
     for(int i=0;i<N;i++) {
         printf("%lf ", arr[i]);
     }
-
     printf("\nsummation : %lf\n", sum[0]);
 
     return 0; 

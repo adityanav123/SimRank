@@ -24,7 +24,7 @@ double l1Norm(ROW_DOUBLE mtx, int V) {
         }
     }
     return l1norm; 
-    // compare these values ; for convergence , precision to 10e-5.
+    // compare these values ; for convergence ; precision to 10e-5.
 }
 
 void storeL2Norm(ROW_DOUBLE mtx, int V) {
@@ -43,16 +43,22 @@ void storel1Norm(ROW_DOUBLE mtx, int V) {
     saveNorm.close();
 }
 
-/*inline bool checkConvergence(ROW_DOUBLE simrankMatrix, int noOfVertices, int iterationValue, double previousIterationL1Norm) {
+bool checkConvergence(ROW_DOUBLE simrankMatrix, int noOfVertices, int iterationValue, double *previousIterationL1Norm) {
     // operations
     // 10e-5 --> precision.
     //
-    // k - 1 --> l1 norm for k-1 iterations.
+    // k - 1 --> l1 norm for the k-1 iterations.
     // k --> calculate
     // k and k-1 compare.
     //
     // if equal then return true.
-}*/
+    double T = *previousIterationL1Norm;
+    double currentL1Norm = l1Norm(simrankMatrix, noOfVertices);
+    *previousIterationL1Norm = currentL1Norm;
+    if ((double)(currentL1Norm - T) < 0.00001)
+        return true;
+    else return false;
+}
 
 
 /*
