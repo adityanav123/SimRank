@@ -79,8 +79,8 @@ void SimRankForAllNodes(int iteration, double* SimRank, int** Graph, int n_verti
            */
            int* d_I_A, *d_I_B;
            
-           // nv profiler start
-           cudaProfilerStart();
+           /* nv profiling */
+           //cudaProfilerStart();
            
            cudaMalloc(&d_I_A, sizeof(int) * ia_size);
            cudaMalloc(&d_I_B, sizeof(int) * ib_size);
@@ -113,7 +113,7 @@ void SimRankForAllNodes(int iteration, double* SimRank, int** Graph, int n_verti
            cudaMemcpy(tmp_ans, d_ans, sizeof(double), cudaMemcpyDeviceToHost);  
 
            // nv profiler end
-           cudaProfilerStop();
+           //cudaProfilerStop();
            
            tmpSimrank[i * n_vertices + j] = tmp_ans[0] * normalisation_factor;
        }
@@ -149,7 +149,7 @@ void ComputeSimRankMatrix (int** Graph, int noOfVertices, int noOfEdges, int max
     // rest of the iterations/
     int k = 1;
     for(; k<max_iterations; k++) {
-//printf("iteration : #%d\n", k);
+    //printf("iteration : #%d\n", k);
         /* below two functions are for plotting convergence graph */
         storeL2Norm(SimRank, noOfVertices);
         storel1Norm(SimRank, noOfVertices);
@@ -230,13 +230,13 @@ int main() {
     TakeSimRankConfigurationInput(noOfIterations, confidence_value);
     
     // Time Calculation for Whole Computation.
-    clock_t startTime,endTime;
+    //clock_t startTime,endTime;
     
-    startTime = clock();
+    //startTime = clock();
     ComputeSimRankMatrix(Graph, noOfVertices, noOfEdges, noOfIterations, confidence_value);
-    endTime = clock();
+    //endTime = clock();
     
-    float time2 = (float)(endTime - startTime) / CLOCKS_PER_SEC;
+    //float time2 = (float)(endTime - startTime) / CLOCKS_PER_SEC;
     printf("[GPU]Time Elapsed in seconds: %.4f\n", totalKernelTime);
     
     //Generating Convergence Graph. 

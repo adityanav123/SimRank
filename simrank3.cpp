@@ -92,8 +92,8 @@ void ComputeSimRankMatrix (int** Graph, int noOfVertices, int noOfEdges, int max
             break;
         }
     }
-    //printf("Total Kernel Time : %.5f\n",totalComputationTime); 
-    //printf("Converged on : %d\n",k);
+    printf("Total Kernel Time : %.5f\n",totalComputationTime); 
+   // printf("Converged on : %d\n",k);
  
     printf("SimRank Algorithm Converged!\nFinal SimRank Matrix : \n");
    /* for(int i = 0; i < noOfVertices; i++) {
@@ -107,9 +107,11 @@ void ComputeSimRankMatrix (int** Graph, int noOfVertices, int noOfEdges, int max
 int** TakeInput(int *V, int *E) {
     //ifstream file("input.txt");
     //ifstream file("wiki-Vote.txt");
-     string filePath = "./tests/datasets/";
-     string fileName = "watts_strogatz.txt";
+    string filePath = "./tests/datasets/";
+    string fileName = "watts_strogatz.txt";
+    
     ifstream file(filePath + fileName);
+    
     file >> *V;
     file >> *E;
     
@@ -123,7 +125,6 @@ int** TakeInput(int *V, int *E) {
     for(int i = 0; i <= n_vertices; i++) {
         Graph[i] = new int[n_vertices+1];
     }
-   // matrix_INT Graph(*V, ROW_INT(*V, 0));
     while(idx < n_edges) {
         file >> from;
         file >> to;
@@ -136,7 +137,6 @@ int** TakeInput(int *V, int *E) {
 
 
 void TakeSimRankConfigurationInput(int &iterations, double &confidence) {
-
     printf("Enter no. of iterations[for default, input -1]: ");
     scanf("%d",&iterations);
     printf("Enter Confidence-Value[0-1, for default, input -1]: ");
@@ -176,6 +176,7 @@ int main() {
     
     printf("[CPU]Time Elapsed in seconds: %.4f\n", time2);
     
+    /* generating convergence plot. */
     system("python numpy_test.py");
     
     return 0;
