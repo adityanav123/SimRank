@@ -10,11 +10,11 @@ print("graph created : ", rgraph)
 
 rgraph_np = np.array(rgraph.edges)
 
-file = open("./datasets/watts_strogatz.txt", 'r+')
+file = open("./datasets/graph_input.txt", 'r+')
 
 file_header = str(len(rgraph.nodes)) + ' ' + str(len(rgraph.edges)) + '\n'
 file.write(file_header)
 for edge in rgraph_np:
     file_content = str(edge[0]) + ' ' + str(edge[1]) + '\n'
     file.write(file_content)
-print("watts strogatz graph generated! & stored in ./datasets/watts_strogatz.txt\n")
+print("watts strogatz graph generated! & stored in ./datasets/graph_input.txt\n")

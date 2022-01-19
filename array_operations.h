@@ -35,3 +35,28 @@ void seeGraph(int** graph, int size) {
         }printf("\n");
     }
 }
+void printInNeighbours (int* in_neighbours, int n_vertices) {
+    for (int i = 0; i < n_vertices; i++) {
+        for (int j = 0; j <= n_vertices; j++) {
+            printf("%d ", in_neighbours[i * (n_vertices + 1) + j]);
+        }
+        printf("\n");
+    }
+}
+    
+int *findInNeighbours_ (int *Graph, int n_vertices) {
+    int *returnArray;
+    returnArray = (int*) malloc(sizeof(int) * n_vertices * (n_vertices + 1));
+    
+    // calculations
+    for (int node = 0; node < n_vertices; ++node) {
+        // calculate in-neighbour for the current node;
+        int count=0;
+        for (int vertex = 0; vertex < n_vertices; vertex++) {
+            returnArray[node * (n_vertices + 1) + vertex] = (Graph[vertex * n_vertices + node] == 1) ? 1 : 0; 
+            count += (Graph[vertex * n_vertices + node] == 1) ? 1 : 0;
+        } 
+        returnArray[node * (n_vertices+1) + n_vertices] = count; // last position stores the count.
+    }
+    return returnArray;
+}
