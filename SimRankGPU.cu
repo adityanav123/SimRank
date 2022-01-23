@@ -36,59 +36,58 @@ __device__ int *calculationArray;
 
 __device__ int inAsize, inBsize, tmpCalculation; // global; device declaration.
 __device__ double tmpSimrankComputation; // stores temporary simrank values.
+__device__ int from, to; // tmp variables storing the from and to nodes;
 
-__global__ void computeSimrank (int* Graph, double* SimRank, int* inNeighbours, int node_from, int node_to) {
-    int bid = blockIdx.x;
-    //int ia_neighbour = blockIdx.x, 
-    //    ib_neighbour = blockIdx.y;
+__global__ void computeSimrank (int* Graph, double* SimRank, int* inNeighbours) {
+    // launch configuration. -> n_vertices, n_vertices
+    int iA, iB;
 
-    int from = node_from,
-        to = node_to;
-    int ia_neighbour = bid / n_vertices_gpu, 
-        ib_neighbour = bid % n_vertices_gpu;
+    iA = blockIdx.x / n_vertices_gpu;
+    iB = blockIdx.x % n_vertices_gpu;
     
-   
+    // checks if both the nodes iA and iB are actually in-neighbours or not.
+    bool checkSimrankInNeighbours = (inNeighbours[from * (n_vertices + 1) + iA] == 1) & (inNeighbours[to * (n_vertices_gpu + 1) + iB] == 1);
+/*
     if (inNeighbours[from * (n_vertices_gpu + 1) + ia_neighbour] == 1 && inNeighbours[to * (n_vertices_gpu + 1) + ib_neighbour] == 1) {
-       // printf("inNeighbours : %d and %d\n", ia_neighbour, ib_neighbour);
-        tmpSimrankComputation = SimRank[ia_neighbour * n_vertices_gpu + ib_neighbour];  
+        tmpSimrankComputation += SimRank[ia_neighbour * n_vertices_gpu + ib_neighbour];  
     }
-
+*/
+    tmpSimrankComputaion += (checkSimrankInNeighbours == 1) * SimRank[iA * n_vertices_gpu + iB];
 }
 
 
 __global__ void kernel_ (int *Graph, int *noOfVertices, double *confidence_value, double *simrankCurrent, double *simrank, int *inNeighbours) {
    n_vertices_gpu = noOfVertices[0]; // global device variable : # of vertices
    int bid = blockIdx.x;
-   int node_from, node_to;
-
-   node_from = bid / n_vertices_gpu;
-   node_to = bid % n_vertices_gpu;
     
-   //printf("%d and %d\n", node_from, node_to);
+   int flagComputation = 0; // 0 - equal, 1 - inNeighbour size 0, 2 - kernel computation
+   double mul = 0.0;
+   tmpSimrankComputation = 0.0;
+   double normalisationFactor = 0.0;
 
-   /*if (node_from == node_to) {
-      simrankCurrent[node_from * n_vertices_gpu + node_to] = 1.0; 
-    return;
-   }*/
+    
+   from = bid / n_vertices_gpu;
+   to = bid % n_vertices_gpu;
 
-   simrankCurrent[node_from * n_vertices_gpu + node_to] = (node_from == node_to) * 1.0 + (node_from != node_to) * 0.0;
+   int inA = inNeighbours[from * (n_vertices_gpu + 1) + n_vertices_gpu], inB = inNeighbours[to * (n_vertices_gpu + 1) + n_vertices_gpu];
 
-
-   if (node_from != node_to) {
-       tmpSimrankComputation = 0.0; // stores the temporary simrank computaion for any 2 nodes. 
+    flagComputation = (from == to) * 0 + (from != to) * 2 + (inA == 0 || inB == 0) * 1; // stores the computation flag
+        
+   if (flagComputation == 2) {
+       // int noOfBlocks = 256 * 16, threadsPerBlock = 256;
+       // computeSimrank <<< noOfBlocks, threadsPerBlock >>> (Graph, simrank, inNeighbours);
+        computeSimrank <<< (n_vertices_gpu, n_vertices_gpu, 1), 1>>> (Graph, simrank, inNeighbours);
+        //computeSimrank <<< n_vertices_gpu * n_vertices_gpu, 1 >>> (Graph, simrank, inNeighbours);
+        //computeSimrank <<< n_vertices_gpu, n_vertices_gpu >>> (Graph, simrank, inNeighbours);
+        //cudaDeviceSynchronize();
    
-        computeSimrank <<< n_vertices_gpu * n_vertices_gpu, 1 >>> (Graph, simrank, inNeighbours, node_from, node_to);
-        cudaDeviceSynchronize();
-   
-        double mul = inNeighbours[node_from * (n_vertices_gpu + 1) + n_vertices_gpu] * inNeighbours[node_to * (n_vertices_gpu + 1) + n_vertices_gpu];
-        //simrankCurrent[node_from * n_vertices_gpu + node_to] = (mul > 0) * tmpSimrankComputation * (confidence_value[0] / mul) + (mul == 0) * 0;
-        if (mul == 0) {
-            simrankCurrent[node_from * n_vertices_gpu + node_to] = 0.0;
-        }
-        else {
-            simrankCurrent[node_from * n_vertices_gpu + node_to] = tmpSimrankComputation * (confidence_value[0] / mul);
-        }
+        mul = inA * inB;
+        normalisationFactor = confidence_value[0] / mul;
+
+        simrankCurrent[from * n_vertices_gpu + to] = normalisationFactor * tmpSimrankComputation;
     }
+
+   simrankCurrent[from * n_vertices_gpu + to] = (flagComputation == 0) * 1.0 + (flagComputation == 1) * 0.0 + (flagComputation == 2) * simrankCurrent[from * n_vertices_gpu + to]; 
 }
 
 
@@ -134,9 +133,14 @@ void SimRankForAllNodes_ (int iteration, double *SimRank, int *Graph, int n_vert
     //printInNeighbours (in_neighbours, n_vertices); <array_operations.h>
    
     int* device_in_neighbours;
-    cudaMalloc(&device_in_neighbours, sizeof(int) * n_vertices * (n_vertices + 1));
+    cudaMallocManaged(&device_in_neighbours, sizeof(int) * n_vertices * (n_vertices + 1)); // In Unified Memory
+    int sizeofInNeighbour = n_vertices * (n_vertices + 1);
+    for (int i = 0; i < sizeofInNeighbour; i++) {
+        device_in_neighbours[i] = in_neighbours[i];
+    }
+    /*cudaMalloc(&device_in_neighbours, sizeof(int) * n_vertices * (n_vertices + 1));
     cudaMemcpy(device_in_neighbours, in_neighbours, sizeof(int) * n_vertices * (n_vertices + 1), cudaMemcpyHostToDevice);
-
+*/
     /* Kernel Call */ 
     startKernel = clock();
     kernel_ <<< n_blocks * n_blocks, 1 >>>(device_Graph, device_vertex, device_cv, device_tmpSimrank, device_currentSimrank, device_in_neighbours);
@@ -152,13 +156,13 @@ void SimRankForAllNodes_ (int iteration, double *SimRank, int *Graph, int n_vert
         }    
     }
 
-
-    /*for (int i = 0; i < n_vertices; i++) {
+    printf("for each iteration : \n");
+    for (int i = 0; i < n_vertices; i++) {
         for (int j = 0; j < n_vertices; j++) {
-            printf("%d ", SimRank[i * n_vertices + j]);
+            printf("%d ", tmpSimrank[i * n_vertices + j]);
         }
         printf("\n");
-    }*/
+    }
 }
 
 void SimRankForAllNodes(int iteration, double* SimRank, int** Graph, int n_vertices, double confidence_value) {
@@ -280,7 +284,7 @@ void ComputeSimRankMatrix (int* Graph, int noOfVertices, int noOfEdges, int max_
     // rest of the iterations/
     int k = 1;
     for(; k<max_iterations; k++) {
-    //printf("iteration : #%d\n", k);
+    printf("\n\niteration : #%d-------------------------------------------\n", k);
         /* below two functions are for plotting convergence graph */
         storeL2Norm(SimRank, noOfVertices);
         storel1Norm(SimRank, noOfVertices);

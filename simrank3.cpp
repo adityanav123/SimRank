@@ -93,14 +93,14 @@ void ComputeSimRankMatrix (int** Graph, int noOfVertices, int noOfEdges, int max
         }
     }
     printf("Total Kernel Time : %.5f\n",totalComputationTime); 
-   // printf("Converged on : %d\n",k);
+    printf("Converged on : %d\n",k);
  
     printf("SimRank Algorithm Converged!\nFinal SimRank Matrix : \n");
-   /* for(int i = 0; i < noOfVertices; i++) {
+    for(int i = 0; i < noOfVertices; i++) {
         for(int j = 0; j < noOfVertices; j++) {
             printf("%.4f ", SimRank[i*noOfVertices+j]);
         }printf("\n");
-    }*/
+    }
     printf("\n");
 }
 
@@ -108,8 +108,8 @@ int** TakeInput(int *V, int *E) {
     //ifstream file("input.txt");
     //ifstream file("wiki-Vote.txt");
     string filePath = "./tests/datasets/";
-    string fileName = "watts_strogatz.txt";
-    
+    //string fileName = "watts_strogatz.txt";
+    string fileName = "graph_input.txt"; 
     ifstream file(filePath + fileName);
     
     file >> *V;
