@@ -1,4 +1,11 @@
-#include <bits/stdc++.h>
+#ifndef CONVERGE_GPU_H
+
+#define CONVERGE_GPU_H
+
+#include <fstream>
+#include <iostream>
+#include <cmath>
+#include <vector>
 using namespace std;
 /*
 #define matrix_INT vector<vector<int>>
@@ -31,15 +38,7 @@ double l1Norm(double* mtx, int V) {
 
 void storeL2Norm(double* mtx, int V) {
     ofstream saveNorm;
-    saveNorm.open("l2_norms_values.txt", ios::app);
-    double normValue = l2Norm(mtx, V);
-    saveNorm << normValue << " ";
-    saveNorm.close();
-}
-
-void storel1Norm(double* mtx, int V) {
-    ofstream saveNorm;
-    saveNorm.open("l1_norms_values.txt", ios::app);
+    saveNorm.open("l2_norms_values ANIMAL_.txt", ios::app);
     double normValue = l1Norm(mtx,V);
     saveNorm << normValue << " ";
     saveNorm.close();
@@ -56,3 +55,4 @@ bool checkConvergence(double* mtx, int V, double *previousNormValue) {
     else return false;
 
 }
+#endif
