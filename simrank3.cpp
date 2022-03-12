@@ -1,18 +1,6 @@
-#include <iostream>
-#include <vector>
-#include <unordered_map>
-#include "convergeGPU.h"
-#include <fstream>
-#include <stdio.h>
-#include "array_operations.h"
-#include <bits/stdc++.h>
-using namespace std;
+#include "include_files.h"
 
-#define d_ for(int i = 0; i < 1000000; i++)
-#define matrix_INT vector<vector<int>>
-#define matrix_DOUBLE vector<vector<double>>
-#define ROW_INT vector<int>
-#define ROW_DOUBLE vector<double>
+using namespace std;
 
 void Message() {
     cout << "Default Configuration : \n\t1. [Directed-Graph]\n\t2. [Confidence Value] : 0.9\n\t3. [No. of Iterations] : 1000\n";
@@ -72,14 +60,14 @@ void ComputeSimRankMatrix (int** Graph, int noOfVertices, int noOfEdges, int max
     } 
     double normValue = 0.00;
     checkConvergence(SimRank, V, &normValue);
-    printf("starting norm value: %d\n", normValue);
+    printf("starting norm value: %lf\n", normValue);
     // rest of the iterations/
     int k = 1;
     clock_t start, end;
     for(; k<max_iterations; k++) {
         /* below two functions are for plotting convergence graph */
-        storeL2Norm(SimRank, noOfVertices);
-        storel1Norm(SimRank, noOfVertices);
+        storeNorm(SimRank, noOfVertices, "L1"); // store l1 norm
+        storeNorm(SimRank, noOfVertices, "L2"); // store l2 norm 
         
         start = clock();
         SimRankForAllNodes(k, SimRank, Graph, noOfVertices, confidence_value);
@@ -105,12 +93,10 @@ void ComputeSimRankMatrix (int** Graph, int noOfVertices, int noOfEdges, int max
 }
 
 int** TakeInput(int *V, int *E) {
-    //ifstream file("input.txt");
-    //ifstream file("wiki-Vote.txt");
-    string filePath = "./tests/datasets/";
-    string fileName = "watts_strogatz.txt";
+
+    string fileName = "graph_input.txt";
     
-    ifstream file(filePath + fileName);
+    ifstream file(DATASET_FOLDER + fileName);
     
     file >> *V;
     file >> *E;
