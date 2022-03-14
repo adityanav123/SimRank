@@ -1,5 +1,10 @@
+#ifndef ARRAY_OPERATIONS_H
+
+#define ARRAY_OPERATIONS_H
+
 #include <stdio.h>
 #include <vector>
+#include <cstdlib>
 
 double* createArray_D(int size_m, double value=0.0) {
     double* tmp = (double*) malloc(sizeof(double) * size_m * size_m);
@@ -37,3 +42,6 @@ void seeGraph(int** graph, int size) {
         }printf("\n");
     }
 }
+
+
+#endif

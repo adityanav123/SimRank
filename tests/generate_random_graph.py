@@ -11,7 +11,6 @@ def DrawGraph(Graph, filePath):
     plt.savefig(fileName)
     plt.show()
 
-
 def GenerateGraph(noOfVertices):
     Graph = nx.watts_strogatz_graph(n=no_of_vertices, k=12, p=0.54, seed=24)
     return Graph
@@ -30,7 +29,7 @@ def StoreGraph(Graph, fileName):
         file_content = str(edge[0]) + ' ' + str(edge[1]) + '\n'
         file.write(file_content)
     DrawGraph(Graph, "../")
-    print("Graph Stored! @", fileName)
+    print("Graph Stored!! @", fileName)
 
 
 #print(nx.moebius_kantor_graph())
