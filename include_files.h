@@ -1,3 +1,7 @@
+#ifndef INCLUDE_FILES_H
+#define INCLUDE_FILES_H
+
+
 #include <iostream>
 #include <vector>
 #include <unordered_map>
@@ -9,8 +13,9 @@
 #include <cstdio>
 
 #include "array_operations.h"
+#include "graph_operations.hpp"
 
-#define d_ for(int i = 0; i < 1000000; i++)
+#define dly(a) for(int i = 0; i < a; i++)
 #define matrix_INT vector<vector<int>>
 #define matrix_DOUBLE vector<vector<double>>
 #define ROW_INT vector<int>
@@ -18,3 +23,9 @@
 
 
 const string DATASET_FOLDER = "./tests/datasets/";
+const int defaultMaxIterations = 1000;
+const double defaultConfidenceValue = 0.9;
+
+using namespace std;
+
+#endif

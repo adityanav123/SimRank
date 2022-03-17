@@ -3,4 +3,3 @@ CompileFlags:
     - -std=c++17
     - --cuda-path=/opt/cuda
     - --cuda-gpu-arch=sm_75
-    - -rdc=true
