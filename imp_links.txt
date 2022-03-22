@@ -1,0 +1,9 @@
+--> Parallel Reduction : https://www.youtube.com/watch?v=RzPDlnZhxtQ , https://developer.download.nvidia.com/assets/cuda/files/reduction.pdf
+--> Assertions in C/C++ : https://www.geeksforgeeks.org/assertions-cc
+--> Memory Allocation inside a CUDA Kernel : https://stackoverflow.com/questions/9806299/memory-allocation-inside-a-cuda-kernel
+--> Unified Memory CUDA : https://developer.nvidia.com/blog/unified-memory-cuda-beginners/
+--> CUDA Occupancy Calculator : https://xmartlabs.github.io/cuda-calculator/
+--> Determining Blocks & Threads Optimally : https://stackoverflow.com/questions/4391162/cuda-determining-threads-per-block-blocks-per-grid
+--> CUDA Hemi Library : https://developer.nvidia.com/blog/simple-portable-parallel-c-hemi-2/
+--> Shared & local variables in Unified Memory : http://www.mathcs.emory.edu/~cheung/Courses/355/Syllabus/94-CUDA/shared-vars.html
+--> 

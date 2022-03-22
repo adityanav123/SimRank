@@ -27,17 +27,15 @@ void see(int *graph, int n) {
     }
 }
 
-__device__ int countIn_A, countIn_B;
+__managed__ int countIn[1];
 
 __global__ 
 void calculateInNeighbours (int *graph, int size, int *in_neighbours, int node, int* count) {
     int id = threadIdx.x + blockIdx.x * blockDim.x;
     for (int i = id; i < size; i += (gridDim.x * blockDim.x)) {
         in_neighbours[i] = graph[i * size + node];
-        countIn_A += (in_neighbours[i] == 1);
     }
     // __syncthreads();
-
 }
 
 void CPUInNeighbour (int *graph, int size, int node, int *in_neighbours) {
@@ -88,10 +86,10 @@ int main() {
     float time_ = (float)(end2 - start2) / CLOCKS_PER_SEC;
     float gputime_ = (float)(end - start) / CLOCKS_PER_SEC;
 
-    // printf("in-Neighbours [GPU] : ");
-    // for (int i = 0; i <vert; i++) {
-    //     printf("%d ", in_neighbours[i]);
-    // }printf("\n");
+    printf("in-Neighbours [GPU] : ");
+    for (int i = 0; i < vert; i++) {
+        printf("%d ", in_neighbours[i]);
+    }printf("\n");
 
     // printf("in-Neighbours [CPU] : ");
     // for (int i = 0; i <vert; i++) {
@@ -103,13 +101,14 @@ int main() {
 
 
 
-    // printf("time [GPU] : %lf\n",(float)(end - start) / CLOCKS_PER_SEC);
-    // printf( "time [CPU] : %lf\n", time_);
+    printf("time [GPU] : %lf\n",(float)(end - start) / CLOCKS_PER_SEC);
+    printf( "time [CPU] : %lf\n", time_);
 
     cputime << time_ << " ";
     gputime << gputime_ << " ";
 
 
+    printf("\nIn-Neighbour count : %d\n", countIn[0]);
 
     return 0;
 }

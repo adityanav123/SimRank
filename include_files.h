@@ -8,6 +8,7 @@
 #include <algorithm>
 #include "convergeGPU.h"
 #include <fstream>
+#include <math.h>
 
 #include <cstdlib>
 #include <cstdio>
@@ -23,6 +24,7 @@
 
 
 const string DATASET_FOLDER = "./tests/datasets/";
+const string TIME_STORE_FOLDER = "./";
 const int defaultMaxIterations = 1000;
 const double defaultConfidenceValue = 0.9;
 
