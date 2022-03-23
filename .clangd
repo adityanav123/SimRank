@@ -1,5 +1,8 @@
 CompileFlags:
     Add:
     - -std=c++17
-    - --cuda-path=/opt/cuda
+    - --cuda-path=/usr/local/cuda
+    # - --cuda-path=/opt/cuda
+    # uncomment upper line for archlinux.
     - --cuda-gpu-arch=sm_75
+    
