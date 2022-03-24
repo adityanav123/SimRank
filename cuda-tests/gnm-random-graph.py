@@ -6,7 +6,7 @@ import os
 import numpy as np
 
 def DrawGraph(Graph, filePath):
-    pltsh = nx.draw_random(Graph,with_labels=True)
+    pltsh = nx.draw(Graph,with_labels=True)
     fileName = filePath + 'Gnm_graph.png'
     plt.savefig(fileName)
     # plt.show() # for showing the graph

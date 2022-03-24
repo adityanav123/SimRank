@@ -1,5 +1,6 @@
 #ifndef CUDA_OPS_H
 #define CUDA_OPS_H
+
 #include <algorithm>
 #include <stdexcept>
 #include <stdio.h>
@@ -33,4 +34,22 @@ int sizeCalculateInNeighbour (int *in_neighbours, int node, int noOfVertices) {
     }
     return size;
 }
+
+// can be called both from device and host.
+__host__  __device__
+int calculateCountOfInNeighbours(int *in_neighbours, int node, int size) {
+    int count=0;
+    for (int i = 0; i < size; i++) {
+        count += (in_neighbours[node*size+i]);
+    }
+    return count;
+}
+
+__host__ __device__
+void computeFromInNeighbours (double *futureSimRankMtx, double *currentSimRankMtx, int *graph, int V, int *inNeighbours, int from, int to) {
+    double result = 0;
+    
+}
+
+
 #endif

@@ -1,7 +1,8 @@
 #include "convergeGPU.h"
 #include "include_files.h"
 #include "cuda_operations_simrank.cuh"
-// #include <__clang_cuda_runtime_wrapper.h>
+#include <__clang_cuda_runtime_wrapper.h>
+#include <system_error>
 
 void ShowMessage() {
     cout << "Default Configuration : \n\t1. [Directed-Graph]\n\t2. [Confidence Value] : " << defaultConfidenceValue 
@@ -12,13 +13,12 @@ __managed__ double ConfidenceValue_;
 __managed__ int ThreadCount_, BlockCount_;
 
 
-
 __global__
 void computeForAPairNodes (int *graph, int verticesCount, double *currentSimRankMtx, double *futureSimRankMtx, int *in_neighbours) {
     int id = threadIdx.x + blockIdx.x * blockDim.x;
     int sqVertices = verticesCount * verticesCount;
     int gridStride = gridDim.x * blockDim.x;
-    for (int i = id; i < verticesCount * verticesCount; i += gridStride) {
+    for (int i = id; i < verticesCount * verticesCount; i += gridStride) { 
         int from, to; // store nodes;
         from = i % verticesCount;
         to = i / verticesCount;
@@ -27,10 +27,19 @@ void computeForAPairNodes (int *graph, int verticesCount, double *currentSimRank
         futureSimRankMtx[to * verticesCount + to] = 1.0;
         
         // other kernel.
-        int inNeigh_CNT_FROM = sizeCalculateInNeighbour(in_neighbours, from, verticesCount);
+    
 
+        int count_inNeighbours_FROM = calculateCountOfInNeighbours (in_neighbours, from, verticesCount);
+        int count_inNeighbours_TO =  calculateCountOfInNeighbours (in_neighbours, to, verticesCount);
         
+        int totalCount = count_inNeighbours_FROM * count_inNeighbours_TO;
+        int N_THREADS, N_BLOCKS;
+        
+        N_THREADS = 1024;
+        N_BLOCKS =  ceil (totalCount / N_THREADS);
 
+        // CPU is faster. [experimental]
+        computeFromInNeighbours (futureSimRankMtx, currentSimRankMtx, graph, verticesCount, in_neighbours, from, to);
     }
 }
 
@@ -40,12 +49,9 @@ void calculateSimRankForEachPair (double *simrank, int n_vertices, int *graph, d
     cudaMallocManaged(&tmpSimRank, sizeof(double) * n_vertices * n_vertices);
     
     int total_threads = n_vertices * n_vertices;
-    int deviceId;
     cudaGetDevice(&deviceId);
-    int noOfSMs;
     cudaDeviceGetAttribute(&noOfSMs, cudaDevAttrMultiProcessorCount, deviceId);
-    int warpSize;
-    cudaDeviceGetAttribute(&warpSize, cudaDevAttrWarpSize, deviceId);
+    cudaDeviceGetAttribute(&warp_size, cudaDevAttrWarpSize, deviceId);
     int sqVertices = n_vertices * n_vertices;
     ThreadCount_ = 1024;
     BlockCount_ = ceil (sqVertices / ThreadCount_);

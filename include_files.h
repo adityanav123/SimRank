@@ -2,6 +2,7 @@
 #define INCLUDE_FILES_H
 
 
+#include <__clang_cuda_builtin_vars.h>
 #include <iostream>
 #include <vector>
 #include <unordered_map>
@@ -27,6 +28,13 @@ const string DATASET_FOLDER = "./tests/datasets/";
 const string TIME_STORE_FOLDER = "./";
 const int defaultMaxIterations = 1000;
 const double defaultConfidenceValue = 0.9;
+
+
+// CUDA DEVICE PROPERTIES
+int deviceId;
+int warp_size;
+int noOfSMs;
+
 
 using namespace std;
 

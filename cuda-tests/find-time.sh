@@ -2,7 +2,7 @@
 
 n=1000
 declare -a a=()
-for i in {0..1000};
+for i in {0..50};
 do
     tmp=($(( $RANDOM % 3000 )))
     a+=($tmp)
