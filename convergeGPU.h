@@ -49,7 +49,7 @@ void storeNorm(double* mtx, int V, string mode) {
 }
 
 
-bool checkConvergence(double* mtx, int V, double *previousNormValue, string mode) {
+inline bool checkConvergence(double* mtx, int V, double *previousNormValue, string mode) {
     // CONVERGENCE CRITERIA USED - mode.
     double currentNormValue=0.0;
     if (mode == "L1")

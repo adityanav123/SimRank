@@ -1,4 +1,5 @@
 #include "include_files.h"
+#include <fstream>
 
 using namespace std;
 
@@ -46,7 +47,7 @@ void SimRankForAllNodes (int k, double* simrank, int **Graph, int noOfVertices, 
        for(int j = 0; j < noOfVertices; j++) {
            simrank[i * noOfVertices + j] = tmpSimRank[i * noOfVertices + j];
        } 
-   } 
+   }
 }
    
 void ComputeSimRankMatrix (int** Graph, int noOfVertices, int noOfEdges, int max_iterations, double confidence_value) {
@@ -59,7 +60,7 @@ void ComputeSimRankMatrix (int** Graph, int noOfVertices, int noOfEdges, int max
         }
     } 
     double normValue = 0.00;
-    checkConvergence(SimRank, V, &normValue);
+    checkConvergence(SimRank, V, &normValue, "L1");
     printf("starting norm value: %lf\n", normValue);
     // rest of the iterations/
     int k = 1;
@@ -72,24 +73,39 @@ void ComputeSimRankMatrix (int** Graph, int noOfVertices, int noOfEdges, int max
         start = clock();
         SimRankForAllNodes(k, SimRank, Graph, noOfVertices, confidence_value);
         end = clock();
+
+        printf ("Iteration : #%d\n", k);
+        for (int i = 0; i < noOfVertices; i++) {
+            for (int j = 0; j < noOfVertices; j++) {
+                printf ("%lf ",SimRank[i * noOfVertices + j]);
+            }printf ("\n");
+        }
+
         
         totalComputationTime += (double)(end-start)/CLOCKS_PER_SEC;
         /* Checking Convergence of SimRank Matrix */ 
         //printf("\nnorm values : %lf\n", normValue);
-        if (k > 2 && checkConvergence(SimRank, noOfVertices, &normValue) == true) {
+        if (k > 2 && checkConvergence(SimRank, noOfVertices, &normValue, "L1") == true) {
             break;
         }
     }
     printf("Total Kernel Time : %.5f\n",totalComputationTime); 
-   // printf("Converged on : %d\n",k);
+   printf("Converged on : %d\n",k);
  
     printf("SimRank Algorithm Converged!\nFinal SimRank Matrix : \n");
-   /* for(int i = 0; i < noOfVertices; i++) {
+
+    ofstream fileptr ("simrank_output.txt", ios::app);
+    for(int i = 0; i < noOfVertices; i++) {
         for(int j = 0; j < noOfVertices; j++) {
-            printf("%.4f ", SimRank[i*noOfVertices+j]);
-        }printf("\n");
-    }*/
-    printf("\n");
+            fileptr << SimRank[i * noOfVertices + j] << " ";
+            // printf("%.4f ", SimRank[i*noOfVertices+j]);
+        }
+        fileptr << "\n";
+        // printf("\n");
+    }
+    fileptr << "\n";
+    // printf("\n");
+    fileptr.close();
 }
 
 int** TakeInput(int *V, int *E) {
@@ -120,22 +136,11 @@ int** TakeInput(int *V, int *E) {
     return Graph;
 }
 
-
-
-void TakeSimRankConfigurationInput(int &iterations, double &confidence) {
-    printf("Enter no. of iterations[for default, input -1]: ");
-    scanf("%d",&iterations);
-    printf("Enter Confidence-Value[0-1, for default, input -1]: ");
-    scanf("%lf",&confidence);
-
-    if(iterations == -1) iterations = 1000;
-    if(confidence == -1) confidence = 0.9;
-
-    cout << "\n*SimRank Configuration Chosen: \n\tIterations: " << iterations << "\n\tConfidence Value: " << confidence << "\n";
-}
-
 int main() {
-     Message();
+    // store ouput in a file.
+    // freopen("simrank_output.txt", "w", stdout);
+
+    Message();
     
     system("./delete_l1_l2.sh"); 
     
@@ -163,7 +168,7 @@ int main() {
     printf("[CPU]Time Elapsed in seconds: %.4f\n", time2);
     
     /* generating convergence plot. */
-    system("python numpy_test.py");
+    system("python3 numpy_test.py");
     
     return 0;
 }

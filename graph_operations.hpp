@@ -39,4 +39,5 @@ inline void TakeSimRankConfigurationInput (int &maxIterations, double &c_value) 
 }
 
 
+
 #endif

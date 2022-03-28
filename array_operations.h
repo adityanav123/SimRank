@@ -43,4 +43,22 @@ void seeGraph(int** graph, int size) {
     }
 }
 
+template <typename t>
+void copyArr (t* a, t *b, int size) {
+    for (int i = 0; i < size; i++) {
+        for (int j = 0; j < size; j++) {
+            b[i * size + j] = a[i * size + j];
+        }
+    }
+}
+
+
+void seeSimrank (double *simrank, int noOfVertices) {
+    for (int i = 0; i < noOfVertices; i++) {
+        for (int j = 0; j < noOfVertices; j++) {
+            printf ("%lf ", simrank[i * noOfVertices + j]);
+        }printf ("\n");
+    }
+}
+
 #endif

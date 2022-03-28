@@ -2,7 +2,7 @@
 #define INCLUDE_FILES_H
 
 
-#include <__clang_cuda_builtin_vars.h>
+// #include <__clang_cuda_builtin_vars.h>
 #include <iostream>
 #include <vector>
 #include <unordered_map>
@@ -10,6 +10,8 @@
 #include "convergeGPU.h"
 #include <fstream>
 #include <math.h>
+
+#include <cassert>
 
 #include <cstdlib>
 #include <cstdio>
