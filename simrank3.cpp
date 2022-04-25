@@ -1,4 +1,5 @@
 #include "include_files.h"
+#include <cstdio>
 #include <fstream>
 
 using namespace std;
@@ -25,7 +26,7 @@ double simrankUtil(int from, int to, int k, double confidenceValue, int **Graph,
     }
     
     double normalisationFactor = (double) (confidenceValue / (double)(ia_size * ib_size));
-    //printf("returning: %lf", summation * normalisationFactor);
+    // printf("calculated for (%d, %d) : %lf\n", from, to, summation * normalisationFactor);
     return summation * normalisationFactor;
 }
 
@@ -74,14 +75,16 @@ void ComputeSimRankMatrix (int** Graph, int noOfVertices, int noOfEdges, int max
         SimRankForAllNodes(k, SimRank, Graph, noOfVertices, confidence_value);
         end = clock();
 
-        printf ("Iteration : #%d\n", k);
-        for (int i = 0; i < noOfVertices; i++) {
-            for (int j = 0; j < noOfVertices; j++) {
-                printf ("%lf ",SimRank[i * noOfVertices + j]);
-            }printf ("\n");
-        }
+        // printf ("Iteration : #%d\n", k);
+        // for (int i = 0; i < noOfVertices; i++) {
+        //     for (int j = 0; j < noOfVertices; j++) {
+        //         printf ("%lf ",SimRank[i * noOfVertices + j]);
+        //     }printf ("\n");
+        // }
 
-        
+        // printf ("iteration : %d\n", k);
+        // seeGraph <double> (SimRank, noOfVertices);
+        // printf ("\n\n");
         totalComputationTime += (double)(end-start)/CLOCKS_PER_SEC;
         /* Checking Convergence of SimRank Matrix */ 
         //printf("\nnorm values : %lf\n", normValue);
@@ -94,18 +97,18 @@ void ComputeSimRankMatrix (int** Graph, int noOfVertices, int noOfEdges, int max
  
     printf("SimRank Algorithm Converged!\nFinal SimRank Matrix : \n");
 
-    ofstream fileptr ("simrank_output.txt", ios::app);
+    // ofstream fileptr ("simrank_output.txt", ios::app);
     for(int i = 0; i < noOfVertices; i++) {
         for(int j = 0; j < noOfVertices; j++) {
-            fileptr << SimRank[i * noOfVertices + j] << " ";
-            // printf("%.4f ", SimRank[i*noOfVertices+j]);
+            // fileptr << SimRank[i * noOfVertices + j] << " ";
+            printf("%.4f ", SimRank[i*noOfVertices+j]);
         }
-        fileptr << "\n";
-        // printf("\n");
+        // fileptr << "\n";
+        printf("\n");
     }
-    fileptr << "\n";
-    // printf("\n");
-    fileptr.close();
+    // fileptr << "\n";
+    printf("\n");
+    // fileptr.close();
 }
 
 int** TakeInput(int *V, int *E) {
@@ -139,10 +142,13 @@ int** TakeInput(int *V, int *E) {
 int main() {
     // store ouput in a file.
     // freopen("simrank_output.txt", "w", stdout);
+    // __fileIO();
+    freopen64("simrankInput.txt", "r", stdin);
+    freopen64("simrankOutputCPU.txt", "w", stdout);
 
     Message();
     
-    system("./delete_l1_l2.sh"); 
+    // system("./delete_l1_l2.sh"); 
     
     // Graph Input.
     int noOfVertices, noOfEdges;
@@ -168,7 +174,7 @@ int main() {
     printf("[CPU]Time Elapsed in seconds: %.4f\n", time2);
     
     /* generating convergence plot. */
-    system("python3 numpy_test.py");
+    // system("python3 numpy_test.py");
     
     return 0;
 }

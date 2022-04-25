@@ -1,18 +1,26 @@
 import networkx as nx
 import numpy as np
+import os
+
+os.system ('rm -rf ./networkx_simrank_output.txt')
 
 G = nx.DiGraph()
 
-G.add_edge(0, 3);
-G.add_edge(0, 4);
-G.add_edge(1, 0);
-G.add_edge(1, 2);
-G.add_edge(3, 4);
-G.add_edge(3, 0);
+edges=[]
+fileInput = np.loadtxt("./tests/datasets/graph_input.txt")
+for i in range (1, fileInput.shape[0]):
+    # print (i, "->", fileInput[i])
+    fromNode, toNode=fileInput[i][0], fileInput[i][1]
+    G.add_edge(fromNode, toNode)
 
 
+noOfEdges=fileInput.shape[0]-1
 
-# print(G)
+
+noOfVertices = fileInput[0][0]
+
+print(G)
+print ("no of vertices : ", noOfVertices)
 
 # print('nodes - ', list(G));
 
@@ -23,16 +31,25 @@ print("max iterations set at : 1000")
 
 simrank_mtx = nx.simrank_similarity(G, importance_factor=0.9, max_iterations=1000);
 
-print("\nfor 0 : ", simrank_mtx[0]);
-print("\nfor 1 : ", simrank_mtx[1]);
-print("\nfor 2 : ", simrank_mtx[2]);
-print("\nfor 3 : ", simrank_mtx[3]);
-print("\nfor 4 : ", simrank_mtx[4]);
+# print (simrank_mtx[0])
 
+toWrite = "networkx_simrank_output.txt"
+command = "touch " + toWrite
+os.system(command)
 
+# print (simrank_mtx[0][2])
 
+file = open (toWrite, "w+")
+for i in range (1,int(noOfVertices)):
+    a = simrank_mtx[i]
+    file.write (str(i) + ": ")
+    for i in range (1, int(noOfVertices)):
+        toStore_ = str(a[i])
+        file.write(toStore_ + " ")
+    file.write("\n")
+file.close()
 print("graph")
 
-A = np.array(nx.adjacency_matrix(G).todense())
+# A = np.array(nx.adjacency_matrix(G).todense())
 
-print(A)
+# print(A)

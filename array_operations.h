@@ -8,6 +8,8 @@
 #include <cstdlib>
 #include <cstdio>
 
+
+
 double* createArray_D(int size_m, double value=0.0) {
     double* tmp = (double*) malloc(sizeof(double) * size_m * size_m);
     for(int i=0;i<size_m;i++) {

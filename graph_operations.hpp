@@ -27,9 +27,9 @@ inline void initGraph (T *graph, int size, T initval) {
 }
 
 inline void TakeSimRankConfigurationInput (int &maxIterations, double &c_value) {
-    cout << "Enter max no of iterations to be run. [for default(1000), enter -1] : ";
+    cout << "Enter max no of iterations to be run. [for default(1000), enter -1] : \n";
     scanf("%d", &maxIterations);
-    cout << "Enter Confidence Value to be used : [for default(0.9), enter -1] : ";
+    cout << "Enter Confidence Value to be used : [for default(0.9), enter -1] : \n";
     scanf ("%lf", &c_value);
     if(maxIterations == -1) maxIterations = 1000;
     if(c_value == -1) c_value = 0.9;

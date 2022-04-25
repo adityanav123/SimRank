@@ -26,6 +26,8 @@
 #define ROW_DOUBLE vector<double>
 
 
+
+
 const string DATASET_FOLDER = "./tests/datasets/";
 const string TIME_STORE_FOLDER = "./";
 const int defaultMaxIterations = 1000;
@@ -39,5 +41,10 @@ int noOfSMs;
 
 
 using namespace std;
+
+void __fileIO() {
+    freopen64 ("simrankInput.txt", "r", stdin);
+    freopen64("simrankOutputUnified.txt", "w", stdout);
+}
 
 #endif
