@@ -55,8 +55,9 @@ int main() {
     // scanf("%d", &node);
 
     int node;
-    std::ifstream fileptr("./test.txt");
-    fileptr >> node;
+    //std::ifstream fileptr("./test.txt");
+    //fileptr >> node;
+    node = 2;
     printf("node choosen : %d\n", node);
     int *in_neighbours;
     cudaMallocManaged(&in_neighbours, sizeof(int) * vert);
