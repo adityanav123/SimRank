@@ -14,6 +14,7 @@
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
+#include <climits>
 //#include "../extra/logs.cpp"
 #include "./array_operations.hpp"
 #include "./cuda_operations.cuh"
@@ -27,8 +28,9 @@ const string STORE_TIME_IN = "./";
 
 
 
-
-
+// CUDA PARAMETERS
+int deviceId;
+int noOfSMs;
 
 void _fileIO(int ip, int op) {
 	if (ip==1) {

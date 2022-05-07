@@ -4,7 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <cctype>
-
+using namespace std;
 #define log(a) printf(a)
 #define _lp_(i, a) for(i=0;i<a;i++)
 #define _nl printf("\n")
@@ -25,7 +25,7 @@ template <typename t>
 void seeMatrix (t *graph, int size) {
 	for (int i = 0; i < size; i++) {
 		for (int j = 0; j < size; j++) {
-			cout << graph[i * size + j] << "\n";
+			cout << graph[i * size + j] << " ";
 		}_nl;
 	}
 }
@@ -48,7 +48,7 @@ double L1Norm (double *matrix, int mtxSize) {
 }
 
 
-void storeNorm (double *matrix, int mtxSize) {
+void storeSimrankScore (double *matrix, int mtxSize) {
 	ofstream saveNorm;
 	saveNorm.open("./data/l1Norm.txt", ios::app);
 	double normValue=0.0;
@@ -58,10 +58,12 @@ void storeNorm (double *matrix, int mtxSize) {
 	saveNorm.close();
 }
 
-inline bool checkConvergence (double *matrix, int mtxSize, double *previousNormValue) {
+inline bool converge (double *matrix, int mtxSize, double *previousNormValue) {
 	double currNormValue = 0.0;
 	currNormValue = L1Norm (matrix, mtxSize);
 	
+	*previousNormValue = currNormValue;
+
 	double threshold = 0.00001;
 	double diff = currNormValue - (*previousNormValue);
 	return (diff < threshold);
@@ -86,6 +88,17 @@ void simrankConfigInput (int &maxIterations, double &confidence) {
 	printf ("%d", maxIterations);
 	log ("\n\tConfidence Value : ");
 	printf ("%lf\n",confidence);
+}
+
+
+
+void debugInNeighbours (int *inNeighbours, int size) {
+	int takeAnyNode = rand() % size;
+	cout << "inneighbours for " << takeAnyNode << " : ";
+	for (int i = 0; i < size; i++) {
+		printf ("%d ", inNeighbours[takeAnyNode * (size + 1) + i]);
+	}
+	printf ("\n");
 }
 
 #endif

@@ -29,7 +29,7 @@ def StoreGraph(Graph, fileName):
 
 
 # deleting old dataset
-command = 'rm -rf ./data/datasets/graph_input.txt'
+command = 'rm -rf ../data/datasets/graph_input.txt'
 os.system(command)
 
 # n nodes and m edges
@@ -42,4 +42,4 @@ edge_count = int(input())
 
 graph = nx.gnm_random_graph(n=vertex_count, m=edge_count, seed=24, directed=True)
 
-StoreGraph (graph, "./datasets/graph_input.txt")
+StoreGraph (graph, "../data/datasets/graph_input.txt")
