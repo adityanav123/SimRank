@@ -64,7 +64,7 @@ inline bool converge (double *matrix, int mtxSize, double *previousNormValue) {
 	
 	*previousNormValue = currNormValue;
 
-	double threshold = 0.00001;
+	double threshold = 0.0001;
 	double diff = currNormValue - (*previousNormValue);
 	return (diff < threshold);
 }

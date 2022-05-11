@@ -1,15 +1,9 @@
-#ifndef CUDA_SIMRANK_CUH
-#define CUDA_SIMRANK_CUH
-
-#include <algorithm>
-#include <cstdio>
-#include <cstdlib>
-#include <stdexcept>
 #include <stdio.h>
+#include <iostream>
+using namespace std;
+__managed__ int noOfVertices;
+__managed__ double cal;
 
-#define _timeit clock()
-
-// calculate in-neighbours
 __global__
 void inNeighboursParallel (int *graph, int *in_neighbours, int N, int node) {
 	int id = threadIdx.x + (blockDim.x * blockIdx.x);
@@ -32,7 +26,7 @@ int *allInNeighbours (int *graph, int vertexCount, int *inNeighbours) {
 
 	int deviceId;
 	cudaGetDevice (&deviceId);
-	
+
 	int noOfSMs, warpSize;
 	cudaDeviceGetAttribute (&noOfSMs, cudaDevAttrMultiProcessorCount, deviceId);
 	cudaDeviceGetAttribute (&warpSize, cudaDevAttrWarpSize, deviceId);
@@ -43,7 +37,7 @@ int *allInNeighbours (int *graph, int vertexCount, int *inNeighbours) {
 		int threadCnt = 1023, blockCnt = noOfSMs * 1024;
 		int *tmp;
 		cudaMallocManaged (&tmp, sizeof(int) * vertexCount);
-		
+
 		int *deviceGraph;
 		cudaMallocManaged (&deviceGraph, sizeof(int) * vertexCount * vertexCount);
 		cudaMemcpy (deviceGraph, graph, sizeof(int) * vertexCount * vertexCount, cudaMemcpyHostToDevice);
@@ -71,55 +65,62 @@ int *allInNeighbours (int *graph, int vertexCount, int *inNeighbours) {
 }
 
 
-// generate pairs.
-int* storePairs (int *pairs, int noOfVertices, int noOfPairs) {
-	for (int i = 0; i < noOfPairs; i++) {
-		int from = i / noOfVertices;
-		int to = i % noOfVertices;
-		pairs[i * 2 + 0] = from;
-		pairs[i * 2 + 1] = to;
+int* GraphInput () {
+	int edges;
+    //int noOfVertices;
+    cin >> noOfVertices >> edges;
+	int from, to, id=0, N=noOfVertices;
+	printf("\ngraph config : \n\tno of vertices: %d\n\tno of edges : %d\n", noOfVertices, edges);
+	int* graph;
+	//graph = (int*)calloc(noOfVertices * noOfVertices, sizeof(int));
+	cudaMallocManaged(&graph, sizeof(int) * noOfVertices * noOfVertices);
+
+	while (id < edges) {
+        cin >> from >> to;
+		graph[from * N + to] = 1;
+		++id;
 	}
-	return pairs;
+	return graph;
 }
 
-__managed__ double anssimrank;
 
-__global__
-void smrank_compute (int noOfVertices, int *graph, int* inNeighbours, double *simrank) {
-	int id = threadIdx.x + (blockIdx.x * blockDim.x);
-	int gridStride = blockDim.x * gridDim.x;
-	for (int i = id; i <= noOfVertices * noOfVertices; i+=gridStride) {
-		int node_1 = i / noOfVertices;
-		int node_2 = i % noOfVertices;
+// __global__
+// void kernel (double *simrank, int from, int to, int *inNeighbours, int *graph) {
+// 	int id = threadIdx.x + (blockIdx.x * blockDim.x);
+// 	int stride = gridDim.x * blockDim.x;
+// 	for (int i =  id; i <=
+// }
 
-		if (inNeighbours[node_1 * (noOfVertices + 1) + node_2] == 1) {
-			anssimrank += simrank[node_1 * noOfVertices + node_2];
-		}
-		else break; // break the thread.
+
+int main() {
+    freopen64("input.txt", "r", stdin);
+    int *graph = GraphInput();
+
+    int inNeighboursSize = sizeof(int) * (noOfVertices * (noOfVertices + 1));
+	int *inNeighbours;
+	cudaMallocManaged (&inNeighbours, inNeighboursSize);
+    inNeighbours = allInNeighbours (graph, noOfVertices, inNeighbours);
+	printf("in-neighbours : \n");
+    printInNeighbours (inNeighbours, noOfVertices);
+
+    double *simrank;
+    cudaMallocManaged (&simrank, sizeof(double) * noOfVertices * noOfVertices);
+
+    for (int i = 0; i < noOfVertices; i++) {
+        for (int j = 0; j < noOfVertices; j++) {
+            simrank[i * noOfVertices + j] = (1.0 * (i == j)) + 0.0;
+        }
+    }
+    printf("before calculating simrank :\n");
+	for (int i = 0; i < noOfVertices; i++) {
+		for (int j = 0; j < noOfVertices; j++) {
+			printf("%lf ", simrank[i * noOfVertices + j]);
+		}printf("\n");
 	}
+
+    cal=0.0;
+    /*kernel <<< noOfVertices * noOfVertices, 1024 >>> (simrank, 2, 3, inNeighbours, graph);
+    cudaDeviceSynchronize();
+	*/
+    return 0;
 }
-
-__host__ __device__
-double simrank_utility (int node_from, int node_to, int *graph, int *inNeighbours, double *prevsimrank, int noOfVertices) {
-	if (node_from == node_to) return 1.0;
-	int in_Node_from = inNeighbours[node_from * (noOfVertices + 1) + noOfVertices];
-	int in_Node_to = inNeighbours[node_to * (noOfVertices + 1) + noOfVertices];
-	if (in_Node_from == 0 || in_Node_to == 0) return 0.0;
-
-	anssimrank=0.0;
-	// calculate simrank for pairs.
-	int localBlockSize = noOfVertices * noOfVertices;
-	int localThreadSize = 1024;
-
-	smrank_compute <<< localBlockSize, localThreadSize >>> (noOfVertices, graph, inNeighbours, prevsimrank);
-	cudaDeviceSynchronize ();
-
-
-	return anssimrank;
-
-}
-
-
-#endif
-
-

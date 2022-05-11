@@ -30,6 +30,21 @@ int* GraphInput () {
 	return graph;
 }
 
+__global__
+void kernel (int *pursuePairs, int *inNeighbours, int *graph, double *simrank, double *prevSimrank, int count, double ConfidenceValue) {
+	int id = threadIdx.x + (blockIdx.x * blockDim.x);
+	int gridStride = blockDim.x * gridDim.x;
+	//printf("kernel call -> id : %d\n", id);
+	for (int i = id; i <= count; i+=gridStride) {
+		int from = pursuePairs[i * 2 + 0];
+		int to = pursuePairs[i * 2 + 1];
+		__syncthreads();
+		double ans = simrank_utility(from, to, graph, inNeighbours, prevSimrank, noOfVertices);
+		printf("simrank ans : %lf\n", ans);
+		simrank[from * noOfVertices + to] = ConfidenceValue * ans;
+	}
+}
+
 
 void CalculateSimrankUtil (double *SimrankCurrent, int *graph, int currentIteration, double ConfidenceValue) {
 	int sizeOfSimrank = noOfVertices * noOfVertices;
@@ -37,6 +52,10 @@ void CalculateSimrankUtil (double *SimrankCurrent, int *graph, int currentIterat
 	double *device_nextSimrank;
 	cudaMalloc(&device_nextSimrank,sizeof(double) * sizeOfSimrank);
 	cudaMemcpy (device_nextSimrank, nextSimrank, sizeof(double) * sizeOfSimrank, cudaMemcpyHostToDevice);
+
+	double *device_currSimrank;
+	cudaMalloc(&device_currSimrank, sizeof(double) * sizeOfSimrank);
+	cudaMemcpy (device_currSimrank, SimrankCurrent, sizeof(double) * sizeOfSimrank, cudaMemcpyHostToDevice);
 
 	int BlockCount, ThreadCount;
 	cudaGetDevice(&deviceId);
@@ -46,7 +65,7 @@ void CalculateSimrankUtil (double *SimrankCurrent, int *graph, int currentIterat
 	int inNeighboursSize = sizeof(int) * (noOfVertices * (noOfVertices + 1));
 	int *inNeighbours;
 	cudaMallocManaged (&inNeighbours, inNeighboursSize);
-
+	//cudaMemPrefetchAsync (inNeighbours, sizeof(int) * (noOfVertices * (noOfVertices + 1)), deviceId);
 	inNeighbours = allInNeighbours (graph, noOfVertices, inNeighbours);
 
 	//debugInNeighbours (inNeighbours, noOfVertices);
@@ -54,7 +73,7 @@ void CalculateSimrankUtil (double *SimrankCurrent, int *graph, int currentIterat
 	int *pursuePairs;
 	int noOfPairs = noOfVertices * noOfVertices;
 
-	pursuePairs = calloc (noOfPairs * 2, sizeof(int)); // init to 0.
+	pursuePairs = (int*)calloc (noOfPairs * 2, sizeof(int)); // init to 0.
 
 	BlockCount = noOfVertices * noOfVertices;
 	ThreadCount = 1024;
@@ -62,22 +81,29 @@ void CalculateSimrankUtil (double *SimrankCurrent, int *graph, int currentIterat
 	pursuePairs = storePairs (pursuePairs, noOfVertices, noOfPairs); // generate pairs.
 
 	// update BlockCount and ThreadCount.
-	BlockCount = noOfPairs * 2;
+	BlockCount = noOfPairs;
 	ThreadCount = 1024;
 
 	// allocating space in GPU
 	int *device_Pairs;
 	cudaMalloc (&device_Pairs, sizeof(int) * noOfPairs * 2);
-	cudaMemcpy (device_Pairs, pursePPairs, sizeof(int) * noOfPairs * 2, cudaMemcpyHostToDevice);
+	cudaMemcpy (device_Pairs, pursuePairs, sizeof(int) * noOfPairs * 2, cudaMemcpyHostToDevice);
 
 	int *device_graph;
 	cudaMalloc(&device_graph, sizeof(int) * noOfVertices * noOfVertices);
-	cudaMemcpy(device_graph, graph, sizeof(int) * noOfVertices, noOfVertices, cudaMemcpyHostToDevice);
+	cudaMemcpy(device_graph, graph, sizeof(int) * noOfVertices * noOfVertices, cudaMemcpyHostToDevice);
 
-
-
-	kernel <<< BlockCount, ThreadCount >>> (device_Pairs, inNeighbours, device_graph, device_nextSimrank, );
+	kernel <<< BlockCount, ThreadCount >>> (device_Pairs, inNeighbours, device_graph, device_nextSimrank, device_currSimrank, noOfPairs, ConfidenceValue);
 	cudaDeviceSynchronize();
+
+	cudaMemcpy (nextSimrank, device_nextSimrank, sizeof(double) * noOfVertices * noOfVertices, cudaMemcpyDeviceToHost);
+
+	// copy the new simrank.
+	for (int i = 0; i < noOfVertices; i++) {
+		for (int j = 0; j < noOfVertices; j++) {
+			SimrankCurrent[i * noOfVertices + j] = nextSimrank[i * noOfVertices + j];
+		}
+	}
 
 	return;
 }
@@ -95,6 +121,7 @@ void ComputeSimrank (int *graph, int MaxNoOfIterations, double ConfidenceValue) 
 	int iteration=1, ConvergedPoint=INT_MAX;
 
 	for ( ; iteration <= MaxNoOfIterations ; iteration++) {
+		printf ("score of simrank matrix at iteration %d : %lf\n", iteration, scoreOfSimrankMatrix);
 		storeSimrankScore (simrank, noOfVertices);
 		// calculating simrank.
 		CalculateSimrankUtil (simrank, graph, iteration, ConfidenceValue);
@@ -107,6 +134,12 @@ void ComputeSimrank (int *graph, int MaxNoOfIterations, double ConfidenceValue) 
 	}
 
 	cout << "converged at : " << ConvergedPoint << "\n";
+
+	for (int i = 0; i < noOfVertices; i++) {
+		for (int j = 0; j < noOfVertices; j++) {
+			printf("%lf ", simrank[i * noOfVertices + j]);
+		}printf("\n");
+	}
 }
 
 
