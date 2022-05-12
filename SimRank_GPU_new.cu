@@ -40,7 +40,7 @@ void kernel (int *pursuePairs, int *inNeighbours, int *graph, double *simrank, d
 		int to = pursuePairs[i * 2 + 1];
 		__syncthreads();
 		double ans = simrank_utility(from, to, graph, inNeighbours, prevSimrank, noOfVertices);
-		printf("simrank ans : %lf\n", ans);
+// 		printf("simrank ans : %lf\n", ans);
 		simrank[from * noOfVertices + to] = ConfidenceValue * ans;
 	}
 }
@@ -158,5 +158,6 @@ int main() {
 	
 	// compute simrank
 	ComputeSimrank (graph, MaxIterations, ConfidenceValue);
+
 	return 0;
 }

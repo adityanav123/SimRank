@@ -46,15 +46,16 @@ int *allInNeighbours (int *graph, int vertexCount, int *inNeighbours) {
 		
 		int *deviceGraph;
 		cudaMallocManaged (&deviceGraph, sizeof(int) * vertexCount * vertexCount);
+
+		cudaMemPrefetchAsync (tmp, sizeof(int) * vertexCount, deviceId);
 		cudaMemcpy (deviceGraph, graph, sizeof(int) * vertexCount * vertexCount, cudaMemcpyHostToDevice);
 
 		//cout << "curr node : " << i << "\n";
 
-		cudaMemPrefetchAsync (tmp, sizeof(int) * vertexCount, deviceId);
-
 		inNeighboursParallel <<< blockCnt, threadCnt >>> (deviceGraph, tmp, vertexCount, i);
 		cudaDeviceSynchronize();
 
+		// CPU Miss.--> since data is in the unfied GPU. --> other process --> store explicitly in GPU memory.
 		for (int j = 0; j < vertexCount; j++) {
 			inNeighbours[i * (vertexCount + 1) + j] = tmp[j];
 		}

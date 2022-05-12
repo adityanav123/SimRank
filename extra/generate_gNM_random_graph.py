@@ -24,7 +24,7 @@ def StoreGraph(Graph, fileName):
     for edge in Graph_Numpy:
         file_content = str(edge[0]) + ' ' + str(edge[1]) + '\n'
         file.write(file_content)
-    DrawGraph(Graph, "../")
+    DrawGraph(Graph, "../data/datasets/")
     print("Graph Stored!! @", fileName)
 
 

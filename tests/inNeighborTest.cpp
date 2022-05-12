@@ -4,7 +4,7 @@ using namespace std;
 #define matrix_INT int**
 
 int** TakeInput(int *V, int *E) {
-    ifstream file("input.txt");
+    ifstream file("../data/datasets/graph_input.txt");
     file >> *V;
     file >> *E;
     

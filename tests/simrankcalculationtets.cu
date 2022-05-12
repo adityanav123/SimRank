@@ -84,12 +84,21 @@ int* GraphInput () {
 }
 
 
-// __global__
-// void kernel (double *simrank, int from, int to, int *inNeighbours, int *graph) {
-// 	int id = threadIdx.x + (blockIdx.x * blockDim.x);
-// 	int stride = gridDim.x * blockDim.x;
-// 	for (int i =  id; i <=
-// }
+__global__
+void kernel (double *simrank, int from, int to, int *inNeighbours, int *graph, int *store) {
+	int id = threadIdx.x + (blockIdx.x * blockDim.x);
+	int stride = gridDim.x * blockDim.x;
+	for (int i =  id; i < noOfVertices * noOfVertices; i += stride) {
+		int node_from = i / noOfVertices;
+		int node_to = i % noOfVertices;
+
+		if (inNeighbours[from * (noOfVertices + 1) + node_from] == 1 && inNeighbours[to * (noOfVertices + 1) + node_to] == 1) {
+			printf("%d, %d\n", node_from, node_to);
+			store[0] += simrank[node_from * noOfVertices + node_to];
+		}
+
+	}
+}
 
 
 int main() {
@@ -111,16 +120,22 @@ int main() {
             simrank[i * noOfVertices + j] = (1.0 * (i == j)) + 0.0;
         }
     }
-    printf("before calculating simrank :\n");
-	for (int i = 0; i < noOfVertices; i++) {
-		for (int j = 0; j < noOfVertices; j++) {
-			printf("%lf ", simrank[i * noOfVertices + j]);
-		}printf("\n");
-	}
+//     printf("before calculating simrank :\n");
+// 	for (int i = 0; i < noOfVertices; i++) {
+// 		for (int j = 0; j < noOfVertices; j++) {
+// 			printf("%lf ", simrank[i * noOfVertices + j]);
+// 		}printf("\n");
+// 	}
 
     cal=0.0;
-    /*kernel <<< noOfVertices * noOfVertices, 1024 >>> (simrank, 2, 3, inNeighbours, graph);
+    int *store;
+	cudaMallocManaged (&store, 1 * sizeof(int));
+	store[0] = 0;
+
+	kernel <<< noOfVertices * noOfVertices, 1024 >>> (simrank, 1, 2, inNeighbours, graph, store);
     cudaDeviceSynchronize();
-	*/
+
+// 	printf("after calculating : \n");
+	printf("cal : %lf\n", store[0]);
     return 0;
 }
