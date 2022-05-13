@@ -10,6 +10,22 @@ void kernel (int *a) {
     printf("current thread : %d\ta[0]=%d\n",id,a[0]);
 }
 
+__global__
+void blockReduction (int *a, int *ans) {
+    int id = threadIdx.x + (blockIdx.x * blockDim.x);
+    int tid = threadIdx.x;
+
+    extern __shared__ int s[];
+    s[tid] = a[id];
+    __syncthreads();
+
+
+
+}
+
+
+// Thrust :: reduce.
+
 int main() {
 
     int s[1] = {0};
