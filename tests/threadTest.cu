@@ -6,21 +6,8 @@ __global__
 void kernel (int *a) {
     int id = threadIdx.x + (blockIdx.x * blockDim.x);
     a[0] += id;
-    __syncthreads();
+    //__syncthreads();
     printf("current thread : %d\ta[0]=%d\n",id,a[0]);
-}
-
-__global__
-void blockReduction (int *a, int *ans) {
-    int id = threadIdx.x + (blockIdx.x * blockDim.x);
-    int tid = threadIdx.x;
-
-    extern __shared__ int s[];
-    s[tid] = a[id];
-    __syncthreads();
-
-
-
 }
 
 

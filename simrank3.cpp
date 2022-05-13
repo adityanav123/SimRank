@@ -1,4 +1,4 @@
-#include <iostream>
+/*#include <iostream>
 #include <vector>
 #include <unordered_map>
 #include "convergeGPU.h"
@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include "array_operations.h"
 #include <bits/stdc++.h>
+
+
 using namespace std;
 
 #define d_ for(int i = 0; i < 1000000; i++)
@@ -13,6 +15,8 @@ using namespace std;
 #define matrix_DOUBLE vector<vector<double>>
 #define ROW_INT vector<int>
 #define ROW_DOUBLE vector<double>
+*/
+#include "./include/include_files.hpp"
 
 void Message() {
     cout << "Default Configuration : \n\t1. [Directed-Graph]\n\t2. [Confidence Value] : 0.9\n\t3. [No. of Iterations] : 1000\n";
@@ -105,12 +109,7 @@ void ComputeSimRankMatrix (int** Graph, int noOfVertices, int noOfEdges, int max
 }
 
 int** TakeInput(int *V, int *E) {
-    //ifstream file("input.txt");
-    //ifstream file("wiki-Vote.txt");
-    string filePath = "./tests/datasets/";
-    string fileName = "watts_strogatz.txt";
-    
-    ifstream file(filePath + fileName);
+    ifstream file("./data/datasets/graph_input.txt");
     
     file >> *V;
     file >> *E;
@@ -135,8 +134,7 @@ int** TakeInput(int *V, int *E) {
 }
 
 
-
-void TakeSimRankConfigurationInput(int &iterations, double &confidence) {
+void simrankConfigInput(int &iterations, double &confidence) {
     printf("Enter no. of iterations[for default, input -1]: ");
     scanf("%d",&iterations);
     printf("Enter Confidence-Value[0-1, for default, input -1]: ");

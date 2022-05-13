@@ -101,7 +101,7 @@ void smrank_compute (int noOfVertices, int *graph, int* inNeighbours, double *si
 }
 
 __host__ __device__
-double simrank_utility (int node_from, int node_to, int *graph, int *inNeighbours, double *prevsimrank, int noOfVertices) {
+double simrank_utility (int node_from, int node_to, int *graph, int *inNeighbours, double *prevsimrank, int noOfVertices, double ConfidenceValue) {
 	if (node_from == node_to) return 1.0;
 	int in_Node_from = inNeighbours[node_from * (noOfVertices + 1) + noOfVertices];
 	int in_Node_to = inNeighbours[node_to * (noOfVertices + 1) + noOfVertices];
@@ -109,14 +109,23 @@ double simrank_utility (int node_from, int node_to, int *graph, int *inNeighbour
 
 	anssimrank=0.0;
 	// calculate simrank for pairs.
-	int localBlockSize = noOfVertices * noOfVertices;
+	/*int localBlockSize = noOfVertices * noOfVertices;
 	int localThreadSize = 1024;
-
-	smrank_compute <<< localBlockSize, localThreadSize >>> (noOfVertices, graph, inNeighbours, prevsimrank);
+*/
+	/*smrank_compute <<< localBlockSize, localThreadSize >>> (noOfVertices, graph, inNeighbours, prevsimrank);
 	cudaDeviceSynchronize ();
+	*/
+	
+	// CPU version
+	for (int i = 0; i < noOfVertices; i++) {
+		for (int j = 0; j < noOfVertices; j++) {
+			if (inNeighbours[node_from * (noOfVertices+1) + i] == 1 && inNeighbours[node_to * (noOfVertices + 1) + j] == 1) {
+				anssimrank += prevsimrank[i * noOfVertices + j];
+			}
+		}		
+	}
 
-
-	return anssimrank;
+	return ((ConfidenceValue * anssimrank) / (in_Node_from * in_Node_to));
 
 }
 

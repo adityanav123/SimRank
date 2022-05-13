@@ -38,10 +38,13 @@ void kernel (int *pursuePairs, int *inNeighbours, int *graph, double *simrank, d
 	for (int i = id; i <= count; i+=gridStride) {
 		int from = pursuePairs[i * 2 + 0];
 		int to = pursuePairs[i * 2 + 1];
+		
+		//printf("curr nodes : (%d, %d)\n",from,to);
+			
 		__syncthreads();
-		double ans = simrank_utility(from, to, graph, inNeighbours, prevSimrank, noOfVertices);
+		double ans = simrank_utility(from, to, graph, inNeighbours, prevSimrank, noOfVertices, ConfidenceValue);
 // 		printf("simrank ans : %lf\n", ans);
-		simrank[from * noOfVertices + to] = ConfidenceValue * ans;
+		simrank[from * noOfVertices + to] = ans;
 	}
 }
 
@@ -104,7 +107,12 @@ void CalculateSimrankUtil (double *SimrankCurrent, int *graph, int currentIterat
 			SimrankCurrent[i * noOfVertices + j] = nextSimrank[i * noOfVertices + j];
 		}
 	}
-
+	
+	// Verbose output
+	/*printf("\n\n-----------");
+	printf("current iteration %d simrank : \n", currentIteration);
+	seeMatrix <double> (SimrankCurrent, noOfVertices);	
+	*/
 	return;
 }
 
@@ -117,11 +125,11 @@ void ComputeSimrank (int *graph, int MaxNoOfIterations, double ConfidenceValue) 
 	double scoreOfSimrankMatrix=0.0;
 	// calculate score for iteration-0
 	converge (simrank, noOfVertices, &scoreOfSimrankMatrix);
-	printf ("score of simrank matrix at iteration 0 : %lf\n", scoreOfSimrankMatrix);
+	//printf ("score of simrank matrix at iteration 0 : %lf\n", scoreOfSimrankMatrix);
 	int iteration=1, ConvergedPoint=INT_MAX;
 
 	for ( ; iteration <= MaxNoOfIterations ; iteration++) {
-		printf ("score of simrank matrix at iteration %d : %lf\n", iteration, scoreOfSimrankMatrix);
+		//printf ("score of simrank matrix at iteration %d : %lf\n", iteration, scoreOfSimrankMatrix);
 		storeSimrankScore (simrank, noOfVertices);
 		// calculating simrank.
 		CalculateSimrankUtil (simrank, graph, iteration, ConfidenceValue);
@@ -133,7 +141,7 @@ void ComputeSimrank (int *graph, int MaxNoOfIterations, double ConfidenceValue) 
 		}
 	}
 
-	cout << "converged at : " << ConvergedPoint << "\n";
+	cout << "converged at : " << iteration << "\n";
 
 	for (int i = 0; i < noOfVertices; i++) {
 		for (int j = 0; j < noOfVertices; j++) {

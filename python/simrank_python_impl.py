@@ -5,6 +5,8 @@ import os
 G = nx.DiGraph() 
 edges=[]
 
+os.system("truncate -s 0 ./simrank_python_output.txt")
+
 edge_lst_ = np.loadtxt("../data/datasets/graph_input.txt")
 
 for i in range (1, edge_lst_.shape[0]):
@@ -21,9 +23,9 @@ print ("max iterations : 1000")
 
 simrank_ = nx.simrank_similarity (G, importance_factor=0.9, max_iterations=1000)
 
-write_on_ = "./simrank_python_output.txt"
-command = "touch " + write_on_
-os.command(write_on_)
+write_on_ = "simrank_python_output.txt"
+#command = "touch " + write_on_
+os.system(write_on_)
 
 _file_ = open (write_on_, "w+")
 for i in range(1, int(no_of_vertices)):
