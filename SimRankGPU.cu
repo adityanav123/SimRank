@@ -164,11 +164,11 @@ void ComputeSimRankMatrix (int** Graph, int noOfVertices, int noOfEdges, int max
     //printf("Converged on : %d\n",k);
     
     //printf("SimRank Algorithm Converged!\nFinal SimRank Matrix : \n");
-    /*for(int i = 0; i < noOfVertices; i++) {
+    for(int i = 0; i < noOfVertices; i++) {
         for(int j = 0; j < noOfVertices; j++) {
             printf("%.4f ", SimRank[i*noOfVertices+j]);
         }printf("\n");
-    }*/
+    }
     printf("\n");
 
 }
@@ -176,7 +176,7 @@ void ComputeSimRankMatrix (int** Graph, int noOfVertices, int noOfEdges, int max
 int** TakeInput(int *V, int *E) {
     string filePath = "./tests/datasets/";
     string fileName = "watts_strogatz.txt";
-    ifstream file(filePath + fileName);
+    ifstream file("./graphinput.txt");
     
     //ifstream file("input.txt");
     file >> *V;

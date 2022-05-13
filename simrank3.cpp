@@ -96,11 +96,11 @@ void ComputeSimRankMatrix (int** Graph, int noOfVertices, int noOfEdges, int max
    // printf("Converged on : %d\n",k);
  
     printf("SimRank Algorithm Converged!\nFinal SimRank Matrix : \n");
-   /* for(int i = 0; i < noOfVertices; i++) {
+   	for(int i = 0; i < noOfVertices; i++) {
         for(int j = 0; j < noOfVertices; j++) {
             printf("%.4f ", SimRank[i*noOfVertices+j]);
         }printf("\n");
-    }*/
+    }
     printf("\n");
 }
 
@@ -110,7 +110,7 @@ int** TakeInput(int *V, int *E) {
     string filePath = "./tests/datasets/";
     string fileName = "watts_strogatz.txt";
     
-    ifstream file(filePath + fileName);
+    ifstream file("./graphinput.txt");
     
     file >> *V;
     file >> *E;
@@ -177,7 +177,7 @@ int main() {
     printf("[CPU]Time Elapsed in seconds: %.4f\n", time2);
     
     /* generating convergence plot. */
-    system("python numpy_test.py");
+    system("python3 numpy_test.py");
     
     return 0;
 }
