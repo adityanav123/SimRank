@@ -3,4 +3,4 @@ CFLAG= -std=c++17 -Wall
 
 all: simrank.o
 simrank.o:
-	nvcc $(CUDA_FLAGS) SimRank_GPU_new.cu -o SimRank_GPU_new
+	nvcc $(CUDA_FLAGS) SimRank_GPU_new.cu -o gpu-simrank

@@ -1,34 +1,40 @@
-/*#include <iostream>
-#include <vector>
-#include <unordered_map>
-#include "convergeGPU.h"
-#include <fstream>
-#include <stdio.h>
-#include "array_operations.h"
-#include <bits/stdc++.h>
+#include "./include/array_operations.hpp"
+#include <climits>
+/* global parameters */
+int noOfVertices;
 
-
-using namespace std;
-
-#define d_ for(int i = 0; i < 1000000; i++)
-#define matrix_INT vector<vector<int>>
-#define matrix_DOUBLE vector<vector<double>>
-#define ROW_INT vector<int>
-#define ROW_DOUBLE vector<double>
-*/
-#include "./include/include_files.hpp"
-
-void Message() {
-    cout << "Default Configuration : \n\t1. [Directed-Graph]\n\t2. [Confidence Value] : 0.9\n\t3. [No. of Iterations] : 1000\n";
+void PreSetup () {
+	system("truncate -s 0 ./data/l1Norm.txt"); // clearing up previous norms.
 }
 
-double simrankUtil(int from, int to, int k, double confidenceValue, int **Graph, double* simrankMatrix, int n_vertices) {
+void ShowAlgoDefaults () {
+    printf ("Default Configuration : \n\t1. [directed-graph]\n\t2. [confidence value] : %lf\n\t3. [max. no of iterations] : %d\n", defaultConfidenceValue, defaultMaxIterations);
+}
+
+int* findInNeighbours (int node, int *graph, int vertexCount, int *size) {
+	int *arr = createArray<int> (noOfVertices);
+	int cnt=0;
+	for (int i = 0; i < vertexCount; i++) {
+		if (graph[node * vertexCount + i] == 1) {
+			++cnt;
+			arr[i] = 1;
+		}else {
+			arr[i] = 0;
+		}
+	}
+
+	*size = cnt;
+	return arr;
+}
+
+
+double simrankUtil(int from, int to, int k, double confidenceValue, int *Graph, double* simrankMatrix, int n_vertices) {
     if (k == 0) return simrankMatrix[from * n_vertices + to];
     if (from == to) return 1.0;
 
     int ia_size, ib_size;
-    int* inNeighbours_from = findInNeighbors(from, Graph, n_vertices, &ia_size);
-    int* inNeighbours_to = findInNeighbors(to, Graph, n_vertices, &ib_size);
+    int* inNeighbours_from = findInNeighbours(from, Graph, n_vertices, &ia_size);
+    int* inNeighbours_to = findInNeighbours(to, Graph, n_vertices, &ib_size);
     
     if(ia_size == 0 || ib_size == 0) return 0.0;
     
@@ -45,9 +51,11 @@ double simrankUtil(int from, int to, int k, double confidenceValue, int **Graph,
 }
 
 double totalComputationTime = 0.00;
-void SimRankForAllNodes (int k, double* simrank, int **Graph, int noOfVertices, double confidenceValue) {
-   double* tmpSimRank = createArray_D(noOfVertices); // default initialisation with 0.0 as array values.
-   //clock_t start, end;
+void SimRankForAllNodes (int k, double* simrank, int *Graph, int noOfVertices, double confidenceValue) {
+   	// double* tmpSimRank = createArray_D(noOfVertices); // default initialisation with 0.0 as array values.
+	double* tmpSimRank = createArray <double> (noOfVertices);
+	
+ //clock_t start, end;
    //d_;
    for(int i = 0; i < noOfVertices; i++) {
        for(int j = 0; j < noOfVertices; j++) {
@@ -65,7 +73,7 @@ void SimRankForAllNodes (int k, double* simrank, int **Graph, int noOfVertices, 
    } 
 }
    
-void ComputeSimRankMatrix (int** Graph, int noOfVertices, int noOfEdges, int max_iterations, double confidence_value) {
+void ComputeSimRankMatrix (int* Graph, int noOfVertices, int max_iterations, double confidence_value) {
     double* SimRank = (double*) malloc(sizeof(double) * noOfVertices * noOfVertices);
     int V = noOfVertices;
     // 1 st iterations.
@@ -74,100 +82,81 @@ void ComputeSimRankMatrix (int** Graph, int noOfVertices, int noOfEdges, int max
             SimRank[i*V+j] = 0.0 + 1.0 * (i==j);
         }
     } 
-    double normValue = 0.00;
-    checkConvergence(SimRank, V, &normValue);
-    printf("starting norm value: %d\n", normValue);
+    double scoreOfSimrankMatrix  = 0.00;
+   	converge (SimRank, noOfVertices, &scoreOfSimrankMatrix);
+   
     // rest of the iterations/
-    int k = 1;
+    int k = 1, ConvergedPoint=INT_MAX;
     clock_t start, end;
     for(; k<max_iterations; k++) {
         /* below two functions are for plotting convergence graph */
-        storeL2Norm(SimRank, noOfVertices);
-        storel1Norm(SimRank, noOfVertices);
+		storeSimrankScore (SimRank, noOfVertices);
         
-        start = clock();
+		start = clock();
         SimRankForAllNodes(k, SimRank, Graph, noOfVertices, confidence_value);
         end = clock();
-        
+    
         totalComputationTime += (double)(end-start)/CLOCKS_PER_SEC;
-        /* Checking Convergence of SimRank Matrix */ 
-        //printf("\nnorm values : %lf\n", normValue);
-        if (k > 2 && checkConvergence(SimRank, noOfVertices, &normValue) == true) {
-            break;
-        }
+
+        bool convergeflag = converge (SimRank, noOfVertices, &scoreOfSimrankMatrix);
+		if (k >= 3 && convergeflag == true) {
+			ConvergedPoint = k;
+			break;
+		}
     }
     printf("Total Kernel Time : %.5f\n",totalComputationTime); 
    // printf("Converged on : %d\n",k);
  
     printf("SimRank Algorithm Converged!\nFinal SimRank Matrix : \n");
-   /* for(int i = 0; i < noOfVertices; i++) {
+    for(int i = 0; i < noOfVertices; i++) {
         for(int j = 0; j < noOfVertices; j++) {
             printf("%.4f ", SimRank[i*noOfVertices+j]);
         }printf("\n");
-    }*/
+    }
     printf("\n");
 }
 
-int** TakeInput(int *V, int *E) {
-    ifstream file("./data/datasets/graph_input.txt");
-    
-    file >> *V;
-    file >> *E;
-    
-    int n_vertices = *V, n_edges = *E;
-    int from, to;
-    int idx = 0;
-    
-    printf("\nEntered Graph Configuration : \n");
-    printf("\tnoOfVertices: %d\n\tnoOfEdges: %d\n",*V,*E);  
-    int** Graph = new int*[n_vertices+1];
-    for(int i = 0; i <= n_vertices; i++) {
-        Graph[i] = new int[n_vertices+1];
-    }
-    while(idx < n_edges) {
-        file >> from;
-        file >> to;
-        Graph[from][to] = 1;
-        idx++; 
-    }
-    return Graph;
+int* GraphInput () {
+	int edges;
+	ifstream fileptr ("./data/datasets/graph_input.txt");
+	fileptr >> noOfVertices >> edges;
+	
+	int from, to, id=0, N=noOfVertices;
+	printf("\ngraph config : \n\tno of vertices: %d\n\tno of edges : %d\n", noOfVertices, edges);
+	int* graph;
+	//graph = createArray<int> (noOfVertices);
+	graph = (int*)calloc(noOfVertices * noOfVertices, sizeof(int));
+	
+	while (id < edges) {
+		fileptr >> from;
+		fileptr >> to;
+		graph[from * N + to] = 1;
+		++id;
+	}	
+	return graph;
 }
 
 
-void simrankConfigInput(int &iterations, double &confidence) {
-    printf("Enter no. of iterations[for default, input -1]: ");
-    scanf("%d",&iterations);
-    printf("Enter Confidence-Value[0-1, for default, input -1]: ");
-    scanf("%lf",&confidence);
 
-    if(iterations == -1) iterations = 1000;
-    if(confidence == -1) confidence = 0.9;
-
-    cout << "\n*SimRank Configuration Chosen: \n\tIterations: " << iterations << "\n\tConfidence Value: " << confidence << "\n";
-}
 
 int main() {
-     Message();
-    
-    system("./delete_l1_l2.sh"); 
-    
-    // Graph Input.
-    int noOfVertices, noOfEdges;
-    int** Graph = TakeInput(&noOfVertices, &noOfEdges);
+ 	PreSetup();
+	ShowAlgoDefaults();
 
-    // SimRank Configuration.
-    int noOfIterations;
-    double confidence_value;
-    TakeSimRankConfigurationInput(noOfIterations, confidence_value);
+	int *graph = GraphInput();
     
-    /*SHOW GRAPH*/
-    //seeGraph(Graph, noOfVertices);
-    
+	int MaxIterations;
+	double ConfidenceValue;
+	simrankConfigInput (MaxIterations, ConfidenceValue);
+	
+    printf("adjacency matrix of graph :\n");
+	seeMatrix<int> (graph, noOfVertices);
+
     // SimRank Computation function
     clock_t startTime, endTime; 
 
     startTime = clock();
-    ComputeSimRankMatrix(Graph, noOfVertices, noOfEdges, noOfIterations, confidence_value);
+    ComputeSimRankMatrix(graph, noOfVertices, MaxIterations, ConfidenceValue);
     endTime = clock();
     /*****************************/ 
     float time2 = (float)(endTime - startTime) / CLOCKS_PER_SEC;
@@ -175,7 +164,7 @@ int main() {
     printf("[CPU]Time Elapsed in seconds: %.4f\n", time2);
     
     /* generating convergence plot. */
-    system("python numpy_test.py");
+    //system("python numpy_test.py");
     
     return 0;
 }

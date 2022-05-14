@@ -4,6 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <cctype>
+#include <cassert>
 using namespace std;
 #define log(a) printf(a)
 #define _lp_(i, a) for(i=0;i<a;i++)
