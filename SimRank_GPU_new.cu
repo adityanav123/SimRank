@@ -158,6 +158,7 @@ int main() {
 
 	int *graph = GraphInput();
 	
+	printf("adjacency matrix of graph :\n");
 	seeMatrix<int> (graph, noOfVertices);
 
 	int MaxIterations;

@@ -23,6 +23,8 @@ print ("max iterations : 1000")
 
 simrank_ = nx.simrank_similarity (G, importance_factor=0.9, max_iterations=1000)
 
+print("simrank matrix :\n", simrank_)
+
 write_on_ = "simrank_python_output.txt"
 #command = "touch " + write_on_
 os.system(write_on_)

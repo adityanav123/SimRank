@@ -61,15 +61,18 @@ void storeSimrankScore (double *matrix, int mtxSize) {
 inline bool converge (double *matrix, int mtxSize, double *previousNormValue) {
 	double currNormValue = 0.0;
 	currNormValue = L1Norm (matrix, mtxSize);
+	
 	//printf("current simrank strength : %lf\tprevious : %lf\n", currNormValue, *previousNormValue); // verbose.
+	
+	double T = *previousNormValue;
 	*previousNormValue = currNormValue;
 
-	double threshold = 0.000001;
+	double threshold = 0.0001;
 	
 	// verbose;
 	
 	
-	double diff = abs(currNormValue - (*previousNormValue));
+	double diff = abs(currNormValue - T);
 	return (diff < threshold);
 }
 
