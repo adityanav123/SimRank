@@ -4,6 +4,7 @@ __managed__ int noOfVertices;
 
 void PreSetup () {
 	system("truncate -s 0 ./data/l1Norm.txt"); // clearing up previous norms.
+	system("truncate -s 0 ./gpu_output.txt"); // clearing previous simrank output.
 }
 
 void ShowAlgoDefaults () {
@@ -35,7 +36,7 @@ void kernel (int *pursuePairs, int *inNeighbours, int *graph, double *simrank, d
 	int id = threadIdx.x + (blockIdx.x * blockDim.x);
 	int gridStride = blockDim.x * gridDim.x;
 	//printf("kernel call -> id : %d\n", id);
-	for (int i = id; i <= count; i+=gridStride) {
+	for (int i = id; i <= count; i += gridStride) {
 		int from = pursuePairs[i * 2 + 0];
 		int to = pursuePairs[i * 2 + 1];
 		
@@ -142,12 +143,18 @@ void ComputeSimrank (int *graph, int MaxNoOfIterations, double ConfidenceValue) 
 	}
 
 	cout << "converged at : " << iteration << "\n";
-
+	cout << "\nsimrank output stored @./gpu_output.txt\n"; 	
+	ofstream store;
+	store.open("gpu_output.txt", ios::app);
 	for (int i = 0; i < noOfVertices; i++) {
 		for (int j = 0; j < noOfVertices; j++) {
-			printf("%lf ", simrank[i * noOfVertices + j]);
-		}printf("\n");
+			store << simrank[i * noOfVertices + j] << " ";
+			// printf("%lf ", simrank[i * noOfVertices + j]);
+		}
+		// printf("\n");
+		store << "\n";
 	}
+	store.close();
 }
 
 
