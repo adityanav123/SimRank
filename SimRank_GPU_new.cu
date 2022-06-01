@@ -31,6 +31,7 @@ int* GraphInput () {
 	return graph;
 }
 
+
 __global__
 void kernel (int *pursuePairs, int *inNeighbours, int *graph, double *simrank, double *prevSimrank, int count, double ConfidenceValue) {
 	int id = threadIdx.x + (blockIdx.x * blockDim.x);
