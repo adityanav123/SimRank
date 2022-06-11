@@ -1,4 +1,6 @@
 #include "./include/include_files.hpp"
+#include "include/cuda_operations.cuh"
+#include <ctime>
 
 __managed__ int noOfVertices;
 
@@ -20,6 +22,8 @@ int* GraphInput () {
 	printf("\ngraph config : \n\tno of vertices: %d\n\tno of edges : %d\n", noOfVertices, edges);
 	int* graph;
 	//graph = createArray<int> (noOfVertices);
+	
+	// this noOfVertices * noOfVertices will limit the size of graph that can be stored.
 	graph = (int*)calloc(noOfVertices * noOfVertices, sizeof(int));
 	
 	while (id < edges) {
@@ -50,7 +54,8 @@ void kernel (int *pursuePairs, int *inNeighbours, int *graph, double *simrank, d
 	}
 }
 
-
+float timestart, timeend;
+double totaltime=0.0;
 void CalculateSimrankUtil (double *SimrankCurrent, int *graph, int currentIteration, double ConfidenceValue) {
 	int sizeOfSimrank = noOfVertices * noOfVertices;
 	double *nextSimrank = createArray <double> (noOfVertices);
@@ -98,10 +103,18 @@ void CalculateSimrankUtil (double *SimrankCurrent, int *graph, int currentIterat
 	cudaMalloc(&device_graph, sizeof(int) * noOfVertices * noOfVertices);
 	cudaMemcpy(device_graph, graph, sizeof(int) * noOfVertices * noOfVertices, cudaMemcpyHostToDevice);
 
+	cudaMemPrefetchAsync (inNeighbours, sizeof(int) * (noOfVertices * (noOfVertices + 1)), deviceId);
+	
+	//float startTime, endTime;
+
+	timestart = _timeit;
 	kernel <<< BlockCount, ThreadCount >>> (device_Pairs, inNeighbours, device_graph, device_nextSimrank, device_currSimrank, noOfPairs, ConfidenceValue);
+	timeend = _timeit;
 	cudaDeviceSynchronize();
 
 	cudaMemcpy (nextSimrank, device_nextSimrank, sizeof(double) * noOfVertices * noOfVertices, cudaMemcpyDeviceToHost);
+
+	totaltime += (double)(timeend - timestart) / CLOCKS_PER_SEC; 
 
 	// copy the new simrank.
 	for (int i = 0; i < noOfVertices; i++) {
@@ -167,7 +180,7 @@ int main() {
 	int *graph = GraphInput();
 	
 	printf("adjacency matrix of graph :\n");
-	seeMatrix<int> (graph, noOfVertices);
+	//seeMatrix<int> (graph, noOfVertices);
 
 	int MaxIterations;
 	double ConfidenceValue;
@@ -175,6 +188,6 @@ int main() {
 	
 	// compute simrank
 	ComputeSimrank (graph, MaxIterations, ConfidenceValue);
-
+	printf("total time : %lf\n", totaltime);
 	return 0;
 }
