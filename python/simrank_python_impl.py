@@ -1,6 +1,7 @@
 import networkx as nx
 import numpy as np
 import os
+import time
 
 G = nx.DiGraph() 
 edges=[]
@@ -21,8 +22,11 @@ print (G)
 print ("confidence value : 0.9")
 print ("max iterations : 1000")
 
+start = time.time()
 simrank_ = nx.simrank_similarity (G, importance_factor=0.9, max_iterations=1000)
+end = time.time()
 
+print("elapsed time : ", end -start)
 print("simrank matrix :\n", simrank_)
 
 write_on_ = "simrank_python_output.txt"
