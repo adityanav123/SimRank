@@ -107,10 +107,10 @@ void ComputeSimRankMatrix (int** Graph, int noOfVertices, int noOfEdges, int max
 int** TakeInput(int *V, int *E) {
     //ifstream file("input.txt");
     //ifstream file("wiki-Vote.txt");
-    string filePath = "./tests/datasets/";
-    string fileName = "watts_strogatz.txt";
+    //string filePath = "./";
+	//string fileName = "graph_input.txt";
     
-    ifstream file("./graphinput.txt");
+    ifstream file("./graph_input.txt");
     
     file >> *V;
     file >> *E;
