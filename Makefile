@@ -1,4 +1,4 @@
-CUDA_FLAGS=-arch=sm_75 -rdc=true -D__CDPRT_SUPPRESS_SYNC_DEPRECATION_WARNING
+CUDA_FLAGS=-arch=sm_75 -rdc=true -D__CDPRT_SUPPRESS_SYNC_DEPRECATION_WARNING -allow-unsupported-compiler
 CFLAG= -std=c++17 -Wall
 CUDA_=nvcc
 all: simrank.o

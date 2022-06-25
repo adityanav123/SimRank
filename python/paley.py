@@ -6,10 +6,11 @@ import os
 import numpy as np
 
 def DrawGraph(Graph, filePath):
-    pltsh = nx.draw_random(Graph,with_labels=True)
+    #pltsh = nx.draw_random(Graph,with_labels=True)
+    nx.draw_random (Graph, with_labels=True)
     fileName = filePath + 'randomGraph.png'
     plt.savefig(fileName)
-    # plt.show() # for showing the graph
+    plt.show() # for showing the graph
 
 def StoreGraph(Graph, fileName):
     command='touch ' + fileName
@@ -24,22 +25,22 @@ def StoreGraph(Graph, fileName):
     for edge in Graph_Numpy:
         file_content = str(edge[0]) + ' ' + str(edge[1]) + '\n'
         file.write(file_content)
-    DrawGraph(Graph, "../")
+    
     print("Graph Stored!! @", fileName)
+    
+    show_graph = input('Print Graph? y/N : ')
+    if show_graph.lower() == 'y':
+        DrawGraph (Graph, "../")
+
 
 
 # deleting old dataset
 command = 'rm -rf ../data/datasets/graph_input.txt'
 os.system(command)
 
-# n nodes and m edges
-#print("Generating Gnm Random Graph.")
-print("generating paley graph.")
-#print("enter no. of vertices : ")
-#vertex_count = int(input())
-#print("enter no. of edges : ")
-#edge_count = int(input())
 
-#graph = nx.gnm_random_graph(n=vertex_count, m=edge_count, seed=24, directed=True)
-graph = nx.paley_graph(55)
+node_cnt = int(input('no. of nodes in the graph : '))
+
+graph = nx.paley_graph(node_cnt)
+
 StoreGraph (graph, "../data/datasets/graph_input.txt")
