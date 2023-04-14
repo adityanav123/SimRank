@@ -1,5 +1,7 @@
 # GPU implementation of Simrank
 
+NOTE: [updated version : testing-beta branch ]
+
 SimRank is a general similarity measure, that says "two objects are considered to be similar if they are referenced by similar objects. In this project we are calculating SimRank
 over a static graph and is defined as - "two objects are similar, if they reference to similar objects". This project Aims to improve SimRank's performance using CUDA, and using CUDA constructs
 using parallel programming abstractions to improve computation time of the program with some other optimisations to improve the time complexity of the program.
